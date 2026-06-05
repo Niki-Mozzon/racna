@@ -1,0 +1,85 @@
+{
+  "name": "racna",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Console errors and failed requests, quietly delivered to your corner. A Chrome/Edge extension.",
+  "keywords": [
+    "chrome-extension",
+    "edge-extension",
+    "manifest-v3",
+    "devtools",
+    "error-tracking",
+    "console",
+    "network-monitoring"
+  ],
+  "homepage": "https://github.com/Niki-Mozzon/racna#readme",
+  "bugs": {
+    "url": "https://github.com/Niki-Mozzon/racna/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Niki-Mozzon/racna.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Niki Mozzon",
+    "email": "racna.dev@gmail.com"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "package": "npm run build && node scripts/package-zip.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "lint": "eslint src tests scripts *.js *.ts",
+    "lint:fix": "eslint src tests scripts *.js *.ts --fix",
+    "format": "prettier --write src tests scripts public .github .changeset .vscode *.md *.json *.js *.ts",
+    "format:check": "prettier --check src tests scripts public .github .changeset .vscode *.md *.json *.js *.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,mts,cts,tsx,js,mjs,cjs,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.9",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@eslint/js": "^9.12.0",
+    "@types/chrome": "^0.0.279",
+    "@types/node": "^22.7.5",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "@vitest/coverage-v8": "^2.1.2",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.12.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^15.11.0",
+    "happy-dom": "^15.7.4",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.8.1",
+    "vitest": "^2.1.2"
+  }
+}
