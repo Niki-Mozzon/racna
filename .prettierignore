@@ -1,0 +1,17 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+
+# Lock files (don't reformat)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Auto-generated changeset markdown
+.changeset/*.md
+!.changeset/README.md

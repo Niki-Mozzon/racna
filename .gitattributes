@@ -1,0 +1,18 @@
+# Auto-detect text files and normalise to LF line endings on checkout.
+# Avoids CRLF noise from Windows contributors without forcing them to
+# reconfigure git globally.
+* text=auto eol=lf
+
+# Binary file extensions. Git should not try to text-process or diff these.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.zip  binary
+*.gz   binary
+*.tar  binary
+
+# SVG is treated as text (so diffs are readable).
+*.svg text
