@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Racna</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img class="logo" src="../icons/icon16.png" alt="Racna" />
+      <span class="title">Racna</span>
+      <label class="toggle" title="Enable / disable Racna">
+        <input type="checkbox" id="enabled" />
+        <span class="slider"></span>
+      </label>
+    </header>
+    <div class="site-row" id="site-row">
+      <span class="site-label">Checking this page…</span>
+      <label class="toggle" title="Enable / disable Racna on this site">
+        <input type="checkbox" id="site-enabled" disabled />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="launcher">
+      <button id="open-settings">
+        <svg
+          class="btn-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+          />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span>Open Settings</span>
+      </button>
+      <p>Opens Racna's settings panel on the current page.</p>
+    </div>
+    <footer class="credit">
+      <a href="https://github.com/Niki-Mozzon" target="_blank" rel="noopener noreferrer"
+        >Racna · by Niki Mozzon</a
+      >
+    </footer>
+    <script src="popup.js"></script>
+  </body>
+</html>
