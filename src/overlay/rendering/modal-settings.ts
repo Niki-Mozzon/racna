@@ -168,8 +168,8 @@ export function renderSettingsModal(): void {
       sel.value = typeof value === 'number' || typeof value === 'string' ? String(value) : '';
     }
   });
-  const threshRow = modal.querySelector('.srow[data-depends="showNetwork"]');
-  if (threshRow) threshRow.classList.toggle('sdisabled', !state.settings.showNetwork);
+  const threshRow = modal.querySelectorAll('.srow[data-depends="showNetwork"]');
+  threshRow.forEach((row) => row.classList.toggle('sdisabled', !state.settings.showNetwork));
   renderSitesTab();
 
   const ignoreContainer = modal.querySelector('#smodal-ignore-rules');

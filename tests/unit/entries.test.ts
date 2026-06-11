@@ -85,8 +85,13 @@ describe('shouldCapture', () => {
     state.settings.networkMinStatus = 500;
     expect(shouldCapture(networkMsg({ status: 404 }))).toBe(false);
     expect(shouldCapture(networkMsg({ status: 500 }))).toBe(true);
-    // status 0 (network error) always passes
     expect(shouldCapture(networkMsg({ status: 0 }))).toBe(true);
+  });
+
+  it('gates network failures by their own toggle', () => {
+    state.settings.networkMinStatus = 500;
+    state.settings.showNetworkFailures = false;
+    expect(shouldCapture(networkMsg({ status: 0 }))).toBe(false);
   });
 });
 

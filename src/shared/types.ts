@@ -216,7 +216,8 @@ export interface Settings {
   showConsoleErrors: boolean;
   showConsoleWarns: boolean;
   showNetwork: boolean;
-  networkMinStatus: number; // 0 = all, 400 = client+server errors, 500 = server only.
+  showNetworkFailures: boolean; // Capture requests that never got a response (status 0: offline, DNS, CORS, abort).
+  networkMinStatus: number; // 400 = client+server errors, 500 = server only; applies to HTTP statuses, not network failures.
   clearOnNav: boolean; // Wipe entries on SPA navigation.
   maxEntries: number; // Capture cap; once full, new entries are dropped (oldest kept) until Clear.
   floodRate: number; // Pause capture above this many events/sec (runaway-loop guard).

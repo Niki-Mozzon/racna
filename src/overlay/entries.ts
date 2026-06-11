@@ -30,10 +30,11 @@ export function shouldCapture(ev: CapturableMessage): boolean {
   }
   // Narrowed: ev.kind === 'network'
   if (!state.settings.showNetwork) return false;
-  const min = state.settings.networkMinStatus || 0;
   const status = ev.status;
-  if (min === 500 && status < 500 && status !== 0) return false;
-  if (min === 400 && status < 400 && status !== 0) return false;
+  if (status === 0) return state.settings.showNetworkFailures;
+  const min = state.settings.networkMinStatus;
+  if (min === 500 && status < 500) return false;
+  if (min === 400 && status < 400) return false;
   return true;
 }
 

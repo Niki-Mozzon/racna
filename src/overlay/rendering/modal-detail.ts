@@ -1,16 +1,16 @@
 import { COPY_FIELD_LABELS, getIconImg } from '../constants.js';
 import { BUILTIN_COPY_TEMPLATES, state } from '../state.js';
 import { setCollapsedFields } from '../storage.js';
-import { escAttr, escHtml, formatTime, truncate } from '../util.js';
+import { escAttr, escHtml, formatTime, statusClass, truncate } from '../util.js';
 
 // The entry detail modal: a per-field breakdown of one captured entry, plus
 // the copy-template picker and the Markdown builder that backs both the
 // "Copy All" button and file export.
 //
-// One source of truth, two outputs: modalSectionSpecs() defines the ordered
-// list of fields once; buildModalHtml() turns it into on-screen sections and
-// buildModalText() turns the same data into copyable Markdown. The per-field
-// `copyFields` toggles decide what's included in the text output.
+// Two builders: modalSectionSpecs() drives the on-screen sections (failure
+// first, context after); buildModalText() assembles the copy text in its own
+// order (page → context → error, or error-first for the AI template). The
+// per-field `copyFields` toggles decide what's included in the text output.
 
 import type { CopyFieldKey, CopyTemplate, Entry } from '../../shared/types.js';
 
@@ -68,28 +68,10 @@ export function formatBody(body: string | null): string {
 
 /** Build the ordered field list for an entry. The two branches mirror the
  *  network vs console split; sections with no data get an empty `content` and
- *  render as a greyed-out "empty" row. This ordering is also the on-screen and
- *  copy order. */
+ *  render as a greyed-out "empty" row. This is the on-screen order: failure first,
+ *  context after. The copy/export order is built independently in buildModalText(). */
 export function modalSectionSpecs(e: Entry): ModalSectionSpec[] {
   const specs: ModalSectionSpec[] = [];
-  specs.push({ key: 'pageUrl', title: 'Page', content: e.pageUrl ? escHtml(e.pageUrl) : '' });
-  specs.push({ key: 'userAgent', title: 'Browser', content: escHtml(navigator.userAgent) });
-  specs.push({
-    key: 'seen',
-    title: 'Seen',
-    content:
-      e.count > 1
-        ? escHtml(
-            'First: ' +
-              formatTime(e.firstSeen) +
-              '  -  Last: ' +
-              formatTime(e.timestamp) +
-              '  ×' +
-              String(e.count),
-          )
-        : '',
-  });
-  specs.push({ key: 'breadcrumbs', title: 'Breadcrumbs', content: breadcrumbsHtml(e) });
   if (e.kind === 'network') {
     specs.push({
       key: 'request',
@@ -137,6 +119,24 @@ export function modalSectionSpecs(e: Entry): ModalSectionSpec[] {
       content: e.filename && e.lineno != null ? escHtml(e.filename + ':' + String(e.lineno)) : '',
     });
   }
+  specs.push({ key: 'breadcrumbs', title: 'Breadcrumbs', content: breadcrumbsHtml(e) });
+  specs.push({ key: 'pageUrl', title: 'Page', content: e.pageUrl ? escHtml(e.pageUrl) : '' });
+  specs.push({ key: 'userAgent', title: 'Browser', content: escHtml(navigator.userAgent) });
+  specs.push({
+    key: 'seen',
+    title: 'Seen',
+    content:
+      e.count > 1
+        ? escHtml(
+            'First: ' +
+              formatTime(e.firstSeen) +
+              '  -  Last: ' +
+              formatTime(e.timestamp) +
+              '  ×' +
+              String(e.count),
+          )
+        : '',
+  });
   return specs;
 }
 
@@ -206,8 +206,27 @@ export function showModal(e: Entry): void {
   state.currentModalEntry = e;
   const titleEl = state.modalEl.querySelector('.modal-title');
   if (titleEl) {
-    titleEl.innerHTML =
-      getIconImg() + '<span class="modal-title-text">' + escHtml(modalTitle(e)) + '</span>';
+    if (e.kind === 'network') {
+      const label = e.status === 0 ? 'ERR' : String(e.status ?? '');
+      titleEl.innerHTML =
+        getIconImg() +
+        '<span>' +
+        escHtml(e.method ?? 'GET') +
+        '</span>' +
+        '<span class="mstatus ' +
+        statusClass(e.status) +
+        '"' +
+        (e.statusText ? ' title="' + escAttr(e.statusText) + '"' : '') +
+        '>' +
+        escHtml(label) +
+        '</span>' +
+        '<span class="modal-title-text">' +
+        escHtml(e.url ?? '') +
+        '</span>';
+    } else {
+      titleEl.innerHTML =
+        getIconImg() + '<span class="modal-title-text">' + escHtml(modalTitle(e)) + '</span>';
+    }
   }
   const replayBtn = state.modalEl.querySelector<HTMLButtonElement>('[data-action="replay"]');
   if (replayBtn) {

@@ -268,10 +268,10 @@ export const CSS = `
 
 .emethod { font-size: 10px; color: var(--txt-5); flex-shrink: 0; font-weight: 700; letter-spacing: 0.5px; }
 .estatus { font-size: 11px; font-weight: 700; flex-shrink: 0; min-width: 26px; }
-.estatus.serr  { color: #ff5555; }
-.estatus.s5xx  { color: #ff5555; }
-.estatus.s4xx  { color: #ffaa33; }
-.estatus.sother { color: #55cc88; }
+.serr  { color: #ff5555; }
+.s5xx  { color: #ff5555; }
+.s4xx  { color: #ffaa33; }
+.sother { color: #55cc88; }
 .epath { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #9988cc; }
 
 .count { font-size: 10px; color: var(--txt-6); flex-shrink: 0; }
@@ -395,6 +395,9 @@ export const CSS = `
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.mstatus { font-size: 10px; font-weight: 700; flex-shrink: 0; }
+
 .sicon-logo { width: 14px; height: 14px; flex-shrink: 0; display: block; }
 .modal-body {
   overflow-y: auto;
@@ -409,11 +412,11 @@ export const CSS = `
 .modal-body::-webkit-scrollbar { width: 4px; }
 .modal-body::-webkit-scrollbar-thumb { background: rgba(var(--fg-rgb),0.15); border-radius: 2px; }
 .msec-title {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--txt-6);
+  color: var(--txt-4);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -450,7 +453,7 @@ export const CSS = `
 .msec-collapsed .msec-title { color: var(--txt-2); }
 .msec-collapsed .msec-chevron { color: #aa66ff; opacity: 1; }
 .msec-collapsed:hover .msec-title { color: var(--txt-1); }
-.msec-expanded:hover .msec-title { color: var(--txt-4); }
+.msec-expanded:hover .msec-title { color: var(--txt-3); }
 .msec-body {
   margin: 0;
   font-size: 11px;

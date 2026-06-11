@@ -404,12 +404,13 @@ function buildUI(): void {
     '<div class="ssec-title">Network</div>' +
     '<div class="srow" title="Captures fetch and XHR requests that fail or return an error status code"><span>Show failed requests</span>' +
     '<label class="sswitch"><input type="checkbox" data-setting="showNetwork"><span class="sslider"></span></label></div>' +
-    '<div class="srow" data-depends="showNetwork" title="Only capture requests at or above this HTTP status code"><span>Minimum status</span>' +
+    '<div class="srow" data-depends="showNetwork" title="Only capture HTTP responses at or above this status code"><span>Minimum status</span>' +
     '<select class="sselect" data-setting="networkMinStatus">' +
-    '<option value="0">All failures (0, 4xx, 5xx)</option>' +
-    '<option value="400">4xx and 5xx only</option>' +
-    '<option value="500">5xx only</option>' +
+    '<option value="400">All HTTP errors (4xx + 5xx)</option>' +
+    '<option value="500">Server errors only (5xx)</option>' +
     '</select></div>' +
+    '<div class="srow" data-depends="showNetwork" title="Capture requests that never got a response: offline, DNS failure, CORS block, or cancelled"><span>Network failures</span>' +
+    '<label class="sswitch"><input type="checkbox" data-setting="showNetworkFailures"><span class="sslider"></span></label></div>' +
     '</div>' +
     '<div class="ssec">' +
     '<div class="ssec-title">Behaviour</div>' +
@@ -533,8 +534,8 @@ function buildUI(): void {
     if (key === 'theme') applyTheme(value as Settings['theme']);
     if (key === 'position') applyPosition(value as Settings['position']);
     if (key === 'showNetwork') {
-      const threshRow = settingsModalEl.querySelector('.srow[data-depends="showNetwork"]');
-      if (threshRow) threshRow.classList.toggle('sdisabled', !value);
+      const threshRow = settingsModalEl.querySelectorAll('.srow[data-depends="showNetwork"]');
+      threshRow.forEach((row) => row.classList.toggle('sdisabled', !value));
     }
   });
 
