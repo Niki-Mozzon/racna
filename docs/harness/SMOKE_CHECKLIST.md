@@ -67,9 +67,14 @@ Walk the **Suggested checklist** in [`README.md`](./README.md):
       payloads, and shows a TIMELINE block
 - [ ] **AI toggle persists**: flip it, close and reopen the modal (and reload
       the page); the switch keeps its state and Export uses the same format
-- [ ] **Hide sensitive headers**: with the setting on (default), copied
-      entries show `Authorization: [redacted]` in both formats; turn it off in
-      Settings → Behaviour and the real header values appear
+- [ ] **Copy format payloads**: fire the three "Copy format payloads" buttons;
+      in the AI copy, the 60 KB body entry carries a
+      `[body truncated at 50000 characters]` marker and the fence-in-body
+      entry is wrapped in a lengthened four-backtick fence
+- [ ] **Hide sensitive headers**: fire the credential-headers button; with the
+      setting on (default), the copied entry shows `Authorization: [redacted]`
+      and `X-Api-Key: [redacted]` in both formats; turn it off in Settings →
+      Behaviour and the real values appear
 
 ## 4. Real-site smoke test
 

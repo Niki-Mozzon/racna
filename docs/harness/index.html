@@ -397,6 +397,29 @@
         </section>
 
         <section>
+          <h2>Copy format payloads <span class="tag">kind: network</span></h2>
+          <div class="btns">
+            <button class="net" onclick="fireFetchWithAuthHeaders()">
+              POST httpbin.org/status/500 w/ credential headers
+            </button>
+            <button class="net" onclick="fireFetchHugeBody()">
+              POST /does-not-exist w/ 60 KB body
+            </button>
+            <button class="net" onclick="fireFetchFenceBody()">
+              POST /does-not-exist w/ ``` fence in body
+            </button>
+          </div>
+          <div class="hint">
+            For the copy/export checks. With <strong>Hide sensitive headers</strong> on, the first
+            entry copies with <code>Authorization: [redacted]</code>. In the AI format, the second
+            entry's request body carries a <code>[body truncated at 50000 characters]</code> marker
+            and the third is wrapped in a lengthened four-backtick fence. (Page JavaScript cannot
+            send a <code>Cookie</code> header, so Authorization and X-Api-Key stand in for the
+            credential set.)
+          </div>
+        </section>
+
+        <section>
           <h2>Breadcrumb scenarios</h2>
           <div class="btns">
             <button onclick="scenarioLogsThenError()">5 console.logs → console.error</button>
@@ -631,6 +654,31 @@
         x.open('GET', 'https://httpbin.org/delay/10');
         x.send();
         setTimeout(() => x.abort(), 2000);
+      }
+
+      // ── Copy format payloads ────────────────────────────────────────────────
+      function fireFetchWithAuthHeaders() {
+        log('fired: POST httpbin.org/status/500 with Authorization + X-Api-Key headers');
+        fetch('https://httpbin.org/status/500', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer harness-secret-token',
+            'X-Api-Key': 'harness-key-123',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ probe: 'redaction' }),
+        }).catch(() => {});
+      }
+      function fireFetchHugeBody() {
+        log('fired: POST /does-not-exist with a 60 KB body (over the 50 KB capture cap)');
+        fetch('/does-not-exist', { method: 'POST', body: 'x'.repeat(60000) }).catch(() => {});
+      }
+      function fireFetchFenceBody() {
+        log('fired: POST /does-not-exist with a ``` fence inside the body');
+        fetch('/does-not-exist', {
+          method: 'POST',
+          body: 'before\n```\ninjected fence\n```\nafter',
+        }).catch(() => {});
       }
 
       // ── Breadcrumb scenarios ────────────────────────────────────────────────
