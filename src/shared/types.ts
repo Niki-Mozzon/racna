@@ -212,7 +212,8 @@ export interface Settings {
   floodRate: number; // Pause capture above this many events/sec (runaway-loop guard).
   watchCooldownSecs: number; // Min gap between toasts for the same watch rule (0 = none).
   copyFields: CopyFields; // Live per-field copy toggles.
-  aiFormat: boolean; // Copy/export tailored for AI tools (error-first, delimited, redacted) vs plain Markdown.
+  aiFormat: boolean; // Copy/export tailored for AI tools (error-first, delimited) vs plain Markdown.
+  redactSensitive: boolean; // Mask credential headers (Authorization, Cookie, ...) in copy/export output.
   collapsedFields: Partial<Record<CopyFieldKey, boolean>>; // Which detail sections are folded.
 }
 

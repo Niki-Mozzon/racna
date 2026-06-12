@@ -64,10 +64,12 @@ Walk the **Suggested checklist** in [`README.md`](./README.md):
       the file contains only the picked entries
 - [ ] **AI format toggle**: with the "AI" switch off, "Copy all" produces plain
       Markdown (page first); with it on, the copy leads with the error, fences
-      payloads, shows a TIMELINE block, and masks `Authorization`/`Cookie`
-      header values
+      payloads, and shows a TIMELINE block
 - [ ] **AI toggle persists**: flip it, close and reopen the modal (and reload
       the page); the switch keeps its state and Export uses the same format
+- [ ] **Hide sensitive headers**: with the setting on (default), copied
+      entries show `Authorization: [redacted]` in both formats; turn it off in
+      Settings → Behaviour and the real header values appear
 
 ## 4. Real-site smoke test
 

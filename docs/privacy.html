@@ -190,10 +190,12 @@
       <p>
         Racna's copy and export feature has a toggle labelled "AI". Despite the name, it is a
         formatting feature and nothing more: it arranges a captured entry into a structured Markdown
-        block that you can paste into an AI tool yourself, if you want to. When the toggle is on,
-        credential headers such as <code>Authorization</code> and <code>Cookie</code> are masked in
-        the copied text. Racna does not connect to any AI service, does not send captured data to
-        one, and has no network access of its own.
+        block that you can paste into an AI tool yourself, if you want to. Racna does not connect to
+        any AI service, does not send captured data to one, and has no network access of its own.
+        Separately, the "Hide sensitive headers" setting (on by default) masks credential headers
+        such as <code>Authorization</code> and <code>Cookie</code> in all copied and exported text,
+        whichever format you use. Request and response bodies are not scanned, so review what you
+        copy before sharing it.
       </p>
 
       <h2>Permissions and why</h2>

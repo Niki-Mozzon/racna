@@ -256,7 +256,7 @@ function buildUI(): void {
     '<button class="pbtn pbtn-icon" data-action="copy-modal" title="Copy all">' +
     COPY_ICON +
     '</button>' +
-    '<label class="ai-flag" title="Format Copy / Export for AI debugging tools: error first, fenced sections, breadcrumb timeline, truncation notes, auth headers redacted">' +
+    '<label class="ai-flag" title="Format Copy / Export for AI debugging tools: error first, fenced sections, breadcrumb timeline, truncation notes">' +
     '<span class="ai-flag-text">AI</span>' +
     '<span class="sswitch sswitch-sm">' +
     '<input type="checkbox" id="ai-format">' +
@@ -395,6 +395,8 @@ function buildUI(): void {
     '<div class="ssec-title">Behaviour</div>' +
     '<div class="srow" title="Automatically clears the error list when the page URL changes (useful on single-page apps)"><span>Clear on navigation</span>' +
     '<label class="sswitch"><input type="checkbox" data-setting="clearOnNav"><span class="sslider"></span></label></div>' +
+    '<div class="srow" title="Masks credential headers (Authorization, Cookie, Set-Cookie, X-Api-Key) in Copy and Export output. Bodies can still contain secrets, so give what you share a quick look."><span>Hide sensitive headers <em>in copy / export, headers only</em></span>' +
+    '<label class="sswitch"><input type="checkbox" data-setting="redactSensitive"><span class="sslider"></span></label></div>' +
     '</div>' +
     '<div class="ssec">' +
     '<div class="ssec-title">Limits</div>' +

@@ -88,7 +88,14 @@ describe('buildModalText, plain format', () => {
     expect(out).not.toContain('root cause');
   });
 
-  it('keeps credential header values verbatim', () => {
+  it('redacts credential headers by default', () => {
+    const out = buildModalText(networkEntry());
+    expect(out).toContain('Authorization: [redacted]');
+    expect(out).not.toContain('s3cr3t-token');
+  });
+
+  it('keeps credential header values when redaction is turned off', () => {
+    state.settings.redactSensitive = false;
     const out = buildModalText(networkEntry());
     expect(out).toContain('Authorization: Bearer s3cr3t-token');
     expect(out).toContain('set-cookie: sid=abc123');

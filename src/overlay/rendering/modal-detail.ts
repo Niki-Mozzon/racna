@@ -268,7 +268,7 @@ const SENSITIVE_HEADERS = new Set([
 ]);
 
 /** Format a header bag as `key: value` lines, masking credential values when
- *  `redact` is on (the AI format). */
+ *  `redact` is on (settings.redactSensitive, default on). */
 function headerLines(h: Record<string, string>, redact: boolean): string[] {
   return Object.keys(h).map((k) => {
     const v = redact && SENSITIVE_HEADERS.has(k.toLowerCase()) ? '[redacted]' : (h[k] ?? '');
@@ -298,14 +298,18 @@ function markTruncation(body: string): string {
  *
  * When `settings.aiFormat` is on the output is tailored for AI tools: blocks
  * are reordered error-first (error → context → page), multi-line payloads are
- * fenced, credential headers are redacted, capped bodies get a truncation
- * note, breadcrumbs become a timeline ending at the failure. Otherwise the order is
- * human-friendly (page → context → error) and content is copied verbatim.
+ * fenced, capped bodies get a truncation note, and breadcrumbs become a
+ * timeline ending at the failure. Otherwise the order is human-friendly
+ * (page → context → error) and content is copied verbatim.
+ *
+ * Independently of the format, credential headers are masked in the output
+ * while `settings.redactSensitive` is on.
  */
 export function buildModalText(e: Entry): string {
   const cf = state.settings.copyFields;
   const include = (key: CopyFieldKey): boolean => cf[key] !== false;
   const isAi = state.settings.aiFormat;
+  const redact = state.settings.redactSensitive;
 
   const pageSection: string[] = [];
   const contextSection: string[] = [];
@@ -341,7 +345,7 @@ export function buildModalText(e: Entry): string {
       errorSection.push('\nREQUEST: ' + (e.method ?? 'GET') + ' ' + (e.url ?? ''));
     }
     if (e.reqHeaders && include('requestHeaders')) {
-      const lines = headerLines(e.reqHeaders, isAi);
+      const lines = headerLines(e.reqHeaders, redact);
       errorSection.push('\nREQUEST HEADERS:');
       errorSection.push(isAi ? fence(lines.join('\n')) : lines.join('\n'));
     }
@@ -360,7 +364,7 @@ export function buildModalText(e: Entry): string {
       );
     }
     if (e.resHeaders && include('responseHeaders')) {
-      const lines = headerLines(e.resHeaders, isAi);
+      const lines = headerLines(e.resHeaders, redact);
       errorSection.push('\nRESPONSE HEADERS:');
       errorSection.push(isAi ? fence(lines.join('\n')) : lines.join('\n'));
     }

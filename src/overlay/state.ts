@@ -71,6 +71,7 @@ export const DEFAULTS: Settings = {
     callStack: true,
   },
   aiFormat: false,
+  redactSensitive: true,
   collapsedFields: {},
 };
 
