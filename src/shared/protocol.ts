@@ -23,3 +23,8 @@ export type ReplayType = typeof REPLAY_TYPE;
 export type OpenSettingsType = typeof OPEN_SETTINGS_TYPE;
 export type NavType = typeof NAV_TYPE;
 export type StatusType = typeof STATUS_TYPE;
+// Capture contract: network bodies are pre-truncated to this cap by the
+// interceptor before posting. Consumers can detect a capped body via
+// `body.length >= BODY_MAX` (an exact-length body is indistinguishable, so
+// treat it as "may be truncated").
+export const BODY_MAX = 50_000;

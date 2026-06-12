@@ -14,20 +14,9 @@ import { MSG_TYPE, NAV_TYPE, OPEN_SETTINGS_TYPE, STATUS_TYPE } from '../shared/p
 
 import { handleAction } from './actions.js';
 import { BELL, CONSOLE_ICON, COPY_ICON, EYE_SLASH, GEAR, getIconImg } from './constants.js';
-import {
-  applyCopyTemplate,
-  handleSaveCopyTemplate,
-  handleUpdateActiveTemplate,
-  setActiveCopyTemplateId,
-} from './copy-templates.js';
 import { addEntry } from './entries.js';
 import { exportEntries } from './export.js';
-import {
-  hideModal,
-  renderCopyTemplatePicker,
-  showModal,
-  toggleFieldCollapsed,
-} from './rendering/modal-detail.js';
+import { hideModal, showModal, toggleFieldCollapsed } from './rendering/modal-detail.js';
 import {
   hideSettingsModal,
   renderSettingsModal,
@@ -267,10 +256,13 @@ function buildUI(): void {
     '<button class="pbtn pbtn-icon" data-action="copy-modal" title="Copy all">' +
     COPY_ICON +
     '</button>' +
-    '<span class="copy-template-group">' +
-    '<select class="sselect copy-template-picker" title="Apply a copy template"></select>' +
-    '<button class="copy-template-delete" data-action="delete-template" title="Delete this template" style="display:none">×</button>' +
+    '<label class="ai-flag" title="Format Copy / Export for AI debugging tools: error first, fenced sections, breadcrumb timeline, truncation notes, auth headers redacted">' +
+    '<span class="ai-flag-text">AI</span>' +
+    '<span class="sswitch sswitch-sm">' +
+    '<input type="checkbox" id="ai-format">' +
+    '<span class="sslider"></span>' +
     '</span>' +
+    '</label>' +
     '<button class="pbtn pbtn-close" data-action="close-modal">×</button>' +
     '</div>' +
     '<div class="modal-body"></div>' +
@@ -308,19 +300,10 @@ function buildUI(): void {
   modalEl.addEventListener('change', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const picker = target.closest<HTMLSelectElement>('.copy-template-picker');
-    if (picker) {
-      const val = picker.value;
-      if (val === '__save__') {
-        handleSaveCopyTemplate();
-        renderCopyTemplatePicker();
-        return;
-      }
-      if (val === '__update__') {
-        handleUpdateActiveTemplate();
-        return;
-      }
-      if (val) applyCopyTemplate(val);
+    const ai = target.closest<HTMLInputElement>('#ai-format');
+    if (ai) {
+      state.settings.aiFormat = ai.checked;
+      setSetting('aiFormat', ai.checked);
       return;
     }
     const input = target.closest<HTMLInputElement>('input[data-copy-field]');
@@ -329,10 +312,6 @@ function buildUI(): void {
     if (!key) return;
     state.settings.copyFields = { ...state.settings.copyFields, [key]: input.checked };
     setCopyFields(state.settings.copyFields);
-    if (state.activeCopyTemplateId?.startsWith('builtin:')) {
-      setActiveCopyTemplateId(null);
-    }
-    renderCopyTemplatePicker();
   });
 
   // Escape closes one layer at a time, innermost first: the rule editor sits
@@ -770,7 +749,6 @@ async function bootstrapState(): Promise<void> {
     state.ignoreRules = data.ignoreRules;
     state.watchRules = data.watchRules;
     state.enabledSites = data.enabledSites;
-    state.activeCopyTemplateId = data.activeCopyTemplateId;
     applyTheme(state.settings.theme);
     applyPosition(state.settings.position);
     if (state.domReady) render();

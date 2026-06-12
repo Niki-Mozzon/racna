@@ -175,9 +175,8 @@ export interface Rule {
 export type IgnoreRule = Rule;
 export type WatchRule = Rule;
 
-// Copy templates control which fields land on the clipboard / in an export.
-// `CopyFieldKey` enumerates every toggleable field; a template stores the
-// subset it wants. See copy-templates.ts.
+// Copy fields control which fields land on the clipboard / in an export.
+// `CopyFieldKey` enumerates every toggleable field.
 export type CopyFieldKey =
   | 'pageUrl'
   | 'userAgent'
@@ -196,16 +195,6 @@ export type CopyFieldKey =
 
 /** The user's live field toggles (which fields the detail view copies). */
 export type CopyFields = Partial<Record<CopyFieldKey, boolean>>;
-/** A template's frozen field set. Stored as `1`-flags (vs booleans) so a
- *  template only ever records the fields it opts *into*; absent === off. */
-export type CopyTemplateFields = Partial<Record<CopyFieldKey, 1>>;
-
-export interface CopyTemplate {
-  id: string;
-  name: string;
-  hint?: string; // Short description shown in the template picker.
-  fields: CopyTemplateFields;
-}
 
 /** All persisted, cross-device-synced user settings (chrome.storage.sync).
  *  Read at startup and on the storage `onChanged` event; see storage.ts. */
@@ -222,10 +211,9 @@ export interface Settings {
   maxEntries: number; // Capture cap; once full, new entries are dropped (oldest kept) until Clear.
   floodRate: number; // Pause capture above this many events/sec (runaway-loop guard).
   watchCooldownSecs: number; // Min gap between toasts for the same watch rule (0 = none).
-  copyFields: CopyFields; // Live per-field copy toggles (when no template is active).
+  copyFields: CopyFields; // Live per-field copy toggles.
+  aiFormat: boolean; // Copy/export tailored for AI tools (error-first, delimited, redacted) vs plain Markdown.
   collapsedFields: Partial<Record<CopyFieldKey, boolean>>; // Which detail sections are folded.
-  copyTemplates: CopyTemplate[];
-  activeCopyTemplateId: string | null; // null = use the live copyFields instead of a template.
 }
 
 /** A row in the overlay's list: one captured event, normalised across all

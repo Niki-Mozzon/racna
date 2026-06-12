@@ -179,19 +179,21 @@
       <h2>Storage and sync</h2>
       <p>
         Your settings are the only thing Racna persists: ignore rules, watch rules, the list of
-        sites you enabled, copy templates, and panel preferences. These are saved through
+        sites you enabled, and panel preferences. These are saved through
         <code>chrome.storage.sync</code>, the browser's own extension storage. If you are signed
         into the browser, Google (or Microsoft, on Edge) syncs that storage across your own devices,
         the same way it syncs your bookmarks. That data stays within your browser account. It never
         reaches any server operated by Racna or its author, because no such server exists.
       </p>
 
-      <h2>The "AI Debug" copy template</h2>
+      <h2>The "AI" format toggle</h2>
       <p>
-        One of Racna's copy templates is named "AI Debug". Despite the name, it is a formatting
-        feature and nothing more: it arranges a captured entry into a Markdown block that you can
-        paste into an AI tool yourself, if you want to. Racna does not connect to any AI service,
-        does not send captured data to one, and has no network access of its own.
+        Racna's copy and export feature has a toggle labelled "AI". Despite the name, it is a
+        formatting feature and nothing more: it arranges a captured entry into a structured Markdown
+        block that you can paste into an AI tool yourself, if you want to. When the toggle is on,
+        credential headers such as <code>Authorization</code> and <code>Cookie</code> are masked in
+        the copied text. Racna does not connect to any AI service, does not send captured data to
+        one, and has no network access of its own.
       </p>
 
       <h2>Permissions and why</h2>

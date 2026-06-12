@@ -6,7 +6,7 @@
 
 import { FLOOD_RATE } from './constants.js';
 
-import type { CopyTemplate, Entry, IgnoreRule, Settings, WatchRule } from '../shared/types.js';
+import type { Entry, IgnoreRule, Settings, WatchRule } from '../shared/types.js';
 
 // One clickable token in the rule editor's URL builder: each path segment and
 // query param becomes a segment the user can wildcard. See rules/editor.ts.
@@ -70,81 +70,9 @@ export const DEFAULTS: Settings = {
     responseBody: true,
     callStack: true,
   },
+  aiFormat: false,
   collapsedFields: {},
-  copyTemplates: [],
-  activeCopyTemplateId: null,
 };
-
-// Ship-with templates the user can pick in the detail view. Their `builtin:`
-// id prefix distinguishes them from user-created templates (which live in
-// settings.copyTemplates and can be edited/deleted).
-export const BUILTIN_COPY_TEMPLATES: readonly CopyTemplate[] = [
-  {
-    id: 'builtin:full',
-    name: 'Full',
-    hint: 'all fields',
-    fields: {
-      pageUrl: 1,
-      userAgent: 1,
-      seen: 1,
-      breadcrumbs: 1,
-      message: 1,
-      stack: 1,
-      location: 1,
-      request: 1,
-      requestHeaders: 1,
-      requestBody: 1,
-      response: 1,
-      responseHeaders: 1,
-      responseBody: 1,
-      callStack: 1,
-    },
-  },
-  {
-    id: 'builtin:network',
-    name: 'Network',
-    hint: 'req/resp + stack',
-    fields: {
-      pageUrl: 1,
-      request: 1,
-      requestHeaders: 1,
-      requestBody: 1,
-      response: 1,
-      responseHeaders: 1,
-      responseBody: 1,
-      callStack: 1,
-    },
-  },
-  {
-    id: 'builtin:console',
-    name: 'Console',
-    hint: 'message + stack + breadcrumbs',
-    fields: { pageUrl: 1, message: 1, stack: 1, location: 1, breadcrumbs: 1 },
-  },
-  {
-    id: 'builtin:compact',
-    name: 'Compact',
-    hint: 'message + stack only',
-    fields: { message: 1, stack: 1 },
-  },
-  {
-    id: 'builtin:ai',
-    name: 'AI Debug',
-    hint: 'optimized for LLM analysis',
-    fields: {
-      pageUrl: 1,
-      breadcrumbs: 1,
-      message: 1,
-      stack: 1,
-      location: 1,
-      request: 1,
-      requestBody: 1,
-      response: 1,
-      responseBody: 1,
-      callStack: 1,
-    },
-  },
-] as const;
 
 // Three categories live side by side here: (1) persisted data mirrored from
 // storage, (2) DOM element handles created once during bootstrap, and (3)
@@ -201,8 +129,6 @@ export interface OverlayState {
   ruleEditorSegments: EditorSegment[];
   ruleEditorConsolePattern: string;
   editingRuleId: string | null; // non-null when editing an existing rule vs creating
-
-  activeCopyTemplateId: string | null;
 }
 
 // The live singleton. Initial values are pre-bootstrap placeholders; index.ts
@@ -250,6 +176,4 @@ export const state: OverlayState = {
   ruleEditorSegments: [],
   ruleEditorConsolePattern: '',
   editingRuleId: null,
-
-  activeCopyTemplateId: null,
 };

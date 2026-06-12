@@ -74,7 +74,8 @@ After every change to `src/overlay/` or `src/interceptor/`, walk through:
     panel populates correctly, and Clear empties everything.
 11. **Export**: with at least 3 entries captured, click Export. A file
     downloads as `racna-<date>-localhost.md`; open it and check that entries are
-    separated by `---` and the content respects the current copy template.
+    separated by `---` and the content respects the AI format toggle and the
+    per-field copy toggles.
 12. **Selection mode**: click Select, toggle two or three entries, then Export.
     The file contains only those. Cancel returns to the normal view.
 

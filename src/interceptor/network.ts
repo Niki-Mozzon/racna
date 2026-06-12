@@ -5,12 +5,12 @@
 // not the originals. Everything here is wrapped defensively: a capture tool
 // must never break the page's networking.
 
+import { BODY_MAX } from '../shared/protocol.js';
+
 import { addCrumb, snapshotCrumbs } from './breadcrumbs.js';
 import { post } from './messaging.js';
 
 import type { Headers as MsgHeaders } from '../shared/types.js';
-
-const BODY_MAX = 50_000; // Cap stored bodies so a huge response can't bloat memory / messages.
 
 /** Parse the raw `\r\n`-delimited string from XHR.getAllResponseHeaders()
  *  into an object. Returns null when there's nothing usable. */

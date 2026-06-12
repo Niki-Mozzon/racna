@@ -62,10 +62,12 @@ Walk the **Suggested checklist** in [`README.md`](./README.md):
 - [ ] **Export, all**: produces a `racna-YYYY-MM-DD-HHMM-hostname.md` file
 - [ ] **Export, selected**: enter selection mode, pick a few, export them, and
       the file contains only the picked entries
-- [ ] **Copy templates**: Builtin → Full / Console / Network / Compact / AI
-      Debug each produce different Markdown output when "Copy all" is hit
-- [ ] **Save custom template**: saves under "My templates"; the ✱ marker appears
-      when fields drift; **↻ Update** appears for dirty custom templates
+- [ ] **AI format toggle**: with the "AI" switch off, "Copy all" produces plain
+      Markdown (page first); with it on, the copy leads with the error, fences
+      payloads, shows a TIMELINE block, and masks `Authorization`/`Cookie`
+      header values
+- [ ] **AI toggle persists**: flip it, close and reopen the modal (and reload
+      the page); the switch keeps its state and Export uses the same format
 
 ## 4. Real-site smoke test
 

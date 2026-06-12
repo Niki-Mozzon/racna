@@ -1,18 +1,7 @@
 import { REPLAY_TYPE } from '../shared/protocol.js';
 
-import {
-  applyCopyTemplate,
-  handleSaveCopyTemplate,
-  handleUpdateActiveTemplate,
-  setActiveCopyTemplateId,
-} from './copy-templates.js';
 import { resumeCapture } from './rendering/flood-banner.js';
-import {
-  hideModal,
-  showModal,
-  buildModalText,
-  renderCopyTemplatePicker,
-} from './rendering/modal-detail.js';
+import { hideModal, showModal, buildModalText } from './rendering/modal-detail.js';
 import {
   hideSettingsModal,
   renderSettingsModal,
@@ -22,7 +11,7 @@ import { renderBadge, renderList } from './rendering/panel.js';
 import { dismissToast, setToastActionHandler } from './rendering/toast.js';
 import { buildEditorPattern, confirmRule, hideRuleEditor, showRuleEditor } from './rules/editor.js';
 import { state } from './state.js';
-import { setIgnoreRules, setWatchRules, setEnabledSites, setCopyTemplates } from './storage.js';
+import { setIgnoreRules, setWatchRules, setEnabledSites } from './storage.js';
 import { feedback } from './util.js';
 
 /**
@@ -31,10 +20,6 @@ import { feedback } from './util.js';
  * `data-id` / `data-rule-id`), a single delegated listener in index.ts finds
  * the nearest `[data-action]` ancestor and calls this. That keeps us from
  * attaching/detaching listeners every time the list re-renders as HTML strings.
- *
- * The `default` branch is load-bearing: any unrecognised action is treated as
- * a copy-template id (the template picker emits the template's id as its
- * action), so adding a template needs no new case here.
  */
 export function handleAction(btn: HTMLElement): void {
   const action = btn.getAttribute('data-action');
@@ -69,16 +54,6 @@ export function handleAction(btn: HTMLElement): void {
       } catch {
         feedback(btn as HTMLButtonElement, '✗ Error');
       }
-      return;
-    }
-    case 'delete-template': {
-      const activeId = state.activeCopyTemplateId;
-      if (!activeId || activeId.startsWith('builtin:')) return;
-      const customs = state.settings.copyTemplates.filter((t) => t.id !== activeId);
-      state.settings.copyTemplates = customs;
-      setCopyTemplates(customs);
-      setActiveCopyTemplateId(null);
-      renderCopyTemplatePicker();
       return;
     }
     case 'close-modal':
@@ -213,19 +188,8 @@ export function handleAction(btn: HTMLElement): void {
       renderBadge();
       return;
     }
-    case 'save-copy-template':
-      handleSaveCopyTemplate();
+    default:
       return;
-    case 'update-active-template':
-      handleUpdateActiveTemplate();
-      return;
-    default: {
-      if (action.length > 0) {
-        // Unknown action; try treating it as a copy template id
-        applyCopyTemplate(action);
-      }
-      return;
-    }
   }
 }
 

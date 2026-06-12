@@ -19,8 +19,9 @@ without opening anything else.
   error
 - **Ignore rules** to pattern-match noise away
 - **Watch rules** that surface specific patterns as toast notifications
-- **Copy templates**: customisable Markdown export for sharing or feeding into
-  AI debugging tools
+- **AI format toggle**: one switch turns the Markdown copy/export into a
+  structured, AI-ready document (error first, fenced sections, breadcrumb
+  timeline, truncation notes, credential headers redacted)
 - **Selection mode + export** for bulk-exporting entries as Markdown
 - **Per-site enable**: runs only on sites you opt into
 

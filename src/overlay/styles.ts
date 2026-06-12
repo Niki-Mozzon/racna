@@ -603,56 +603,15 @@ export const CSS = `
   color: var(--txt-1);
 }
 .sselect option:disabled { color: var(--txt-6); }
-.copy-template-group {
+.ai-flag {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-}
-.copy-template-picker {
-  max-width: 160px;
-  background: transparent;
-  border-color: rgba(var(--fg-rgb),0.06);
-  color: var(--txt-4);
-  padding: 2px 4px;
-  font-size: 10px;
-}
-.copy-template-picker:hover { color: var(--txt-3); border-color: rgba(var(--fg-rgb),0.12); }
-.copy-template-delete {
-  background: transparent;
-  border: none;
-  color: var(--txt-5);
+  gap: 4px;
   cursor: pointer;
-  font-size: 13px;
-  line-height: 1;
-  padding: 0 4px;
-  font-family: inherit;
-  border-radius: 3px;
-  transition: color 0.1s, background 0.1s;
+  flex-shrink: 0;
 }
-.copy-template-delete:hover { color: var(--txt-1); background: rgba(var(--fg-rgb),0.08); }
-.srule-row { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-bottom: 1px solid rgba(var(--fg-rgb),0.04); }
-.srule-row:last-child { border-bottom: none; }
-.srule-line { display: flex; align-items: center; gap: 6px; }
-.srule-icon { font-size: 12px; flex-shrink: 0; width: 14px; display: inline-flex; justify-content: center; align-items: center; }
-.srule-icon.net   { color: #aa66ff; }
-.srule-icon.cons  { color: #ff8080; }
-.srule-icon.watch { color: #ffaa33; }
-.srule-desc { flex: 1; font-size: 11px; color: var(--txt-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.srule-note-badge { font-size: 12px; flex-shrink: 0; opacity: 0.7; cursor: help; display: inline-flex; align-items: center; }
-.srule-edit { flex-shrink: 0; font-size: 10px; padding: 2px 6px; }
-.srule-del { flex-shrink: 0; }
-.srule-note {
-  font-size: 10px;
-  color: var(--txt-4);
-  line-height: 1.4;
-  white-space: pre-wrap;
-  word-break: break-word;
-  padding: 2px 0 2px 20px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.ai-flag-text { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--txt-5); }
+.ai-flag:hover .ai-flag-text { color: var(--txt-3); }
 .srule-editing { background: rgba(170,102,255,0.04); border-radius: 4px; padding: 6px 6px 4px; }
 .srule-note-ta {
   margin-left: 20px;

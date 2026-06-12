@@ -19,7 +19,6 @@ export default defineConfig({
         'src/overlay/state.ts',
         'src/overlay/entries.ts',
         'src/overlay/rules/matching.ts',
-        'src/overlay/copy-templates.ts',
       ],
       exclude: ['src/**/*.d.ts'],
       thresholds: {

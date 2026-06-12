@@ -1,4 +1,4 @@
-// Persistence layer over chrome.storage.sync. All settings/rules/templates are
+// Persistence layer over chrome.storage.sync. All settings/rules are
 // written here and synced across the user's signed-in browsers. Writes are
 // fire-and-forget; the in-memory `state` is the source of truth for the
 // current session and the storage `onChanged` listener (in index.ts) re-syncs
@@ -8,14 +8,7 @@
 // synchronously (extension context invalidated, quota exceeded), and a
 // failed *persist* must never break the live UI, which already has the value.
 
-import type {
-  CopyFields,
-  CopyFieldKey,
-  CopyTemplate,
-  IgnoreRule,
-  Settings,
-  WatchRule,
-} from '../shared/types.js';
+import type { CopyFields, CopyFieldKey, IgnoreRule, Settings, WatchRule } from '../shared/types.js';
 
 /** Persist a single setting by key (keeps the call sites type-safe per key). */
 export function setSetting<K extends keyof Settings>(key: K, value: Settings[K]): void {
@@ -50,25 +43,9 @@ export function setEnabledSites(sites: string[]): void {
   }
 }
 
-export function setCopyTemplates(templates: CopyTemplate[]): void {
-  try {
-    void chrome.storage.sync.set({ copyTemplates: templates });
-  } catch {
-    /* ignore */
-  }
-}
-
 export function setCopyFields(fields: CopyFields): void {
   try {
     void chrome.storage.sync.set({ copyFields: fields });
-  } catch {
-    /* ignore */
-  }
-}
-
-export function setActiveCopyTemplateIdInStorage(id: string | null): void {
-  try {
-    void chrome.storage.sync.set({ activeCopyTemplateId: id });
   } catch {
     /* ignore */
   }
@@ -88,12 +65,9 @@ export interface StorageBootstrap {
   ignoreRules: IgnoreRule[];
   watchRules: WatchRule[];
   enabledSites: string[];
-  activeCopyTemplateId: string | null;
 }
 
-interface SettingsResult extends Partial<Settings> {
-  activeCopyTemplateId?: string | null;
-}
+type SettingsResult = Partial<Settings>;
 
 interface RulesResult {
   ignoreRules?: IgnoreRule[];
@@ -141,13 +115,7 @@ export async function loadBootstrap(defaults: Settings): Promise<StorageBootstra
       ...(settingsResult.copyFields ?? {}),
     },
     collapsedFields: settingsResult.collapsedFields ?? {},
-    copyTemplates: Array.isArray(settingsResult.copyTemplates) ? settingsResult.copyTemplates : [],
   };
-
-  const activeCopyTemplateId =
-    typeof settingsResult.activeCopyTemplateId === 'string'
-      ? settingsResult.activeCopyTemplateId
-      : null;
 
   return {
     settings,
@@ -158,6 +126,5 @@ export async function loadBootstrap(defaults: Settings): Promise<StorageBootstra
         // file:// page before it had a stable key) renders as a blank Sites row.
         sitesResult.enabledSites.filter((h) => typeof h === 'string' && h.trim() !== '')
       : ['localhost', '127.0.0.1'],
-    activeCopyTemplateId,
   };
 }

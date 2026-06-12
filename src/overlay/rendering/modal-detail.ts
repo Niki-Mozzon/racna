@@ -1,18 +1,18 @@
-import { COPY_FIELD_LABELS, getIconImg } from '../constants.js';
-import { BUILTIN_COPY_TEMPLATES, state } from '../state.js';
+import { BODY_MAX } from '../../shared/protocol.js';
+import { getIconImg } from '../constants.js';
+import { state } from '../state.js';
 import { setCollapsedFields } from '../storage.js';
 import { escAttr, escHtml, formatTime, statusClass, truncate } from '../util.js';
 
 // The entry detail modal: a per-field breakdown of one captured entry, plus
-// the copy-template picker and the Markdown builder that backs both the
-// "Copy All" button and file export.
+// the Markdown builder that backs both the "Copy All" button and file export.
 //
 // Two builders: modalSectionSpecs() drives the on-screen sections (failure
 // first, context after); buildModalText() assembles the copy text in its own
-// order (page → context → error, or error-first for the AI template). The
-// per-field `copyFields` toggles decide what's included in the text output.
+// order (page → context → error, or error-first when settings.aiFormat is
+// on). The per-field `copyFields` toggles decide what's included in the text.
 
-import type { CopyFieldKey, CopyTemplate, Entry } from '../../shared/types.js';
+import type { CopyFieldKey, Entry } from '../../shared/types.js';
 
 /** One collapsible field section: which copy-field it maps to, its heading,
  *  and its pre-escaped HTML content (empty string when this entry has none). */
@@ -234,7 +234,8 @@ export function showModal(e: Entry): void {
     replayBtn.setAttribute('data-store-id', e.storeId != null ? String(e.storeId) : '');
   }
   state.modalBodyEl.innerHTML = buildModalHtml(e);
-  renderCopyTemplatePicker();
+  const aiToggle = state.modalEl.querySelector<HTMLInputElement>('#ai-format');
+  if (aiToggle) aiToggle.checked = state.settings.aiFormat;
   state.modalEl.style.display = '';
 }
 
@@ -254,118 +255,58 @@ export function toggleFieldCollapsed(key: CopyFieldKey): void {
   refreshModalBody();
 }
 
-// ── Copy template picker (lives on the detail modal) ──────────────────────
-
-function fieldListText(fields: Partial<Record<CopyFieldKey, unknown>>): string {
-  const included = (Object.keys(COPY_FIELD_LABELS) as CopyFieldKey[]).filter((k) => !!fields[k]);
-  if (!included.length) return '(no fields)';
-  return '  • ' + included.map((k) => COPY_FIELD_LABELS[k]).join('\n  • ');
-}
-
-function copyTemplateTooltip(
-  tpl: CopyTemplate,
-  currentFields: Partial<Record<CopyFieldKey, unknown>> | null,
-): string {
-  const savedSection = tpl.name + '\nApplies:\n' + fieldListText(tpl.fields);
-  if (!currentFields) return savedSection;
-  return (
-    savedSection + '\n\nCurrently checked:\n' + fieldListText(currentFields) + '\n(unsaved changes)'
-  );
-}
-
-/** Does the live field selection differ from the template's saved set? Drives
- *  the "unsaved changes" marker and the Update option in the picker. */
-export function templateFieldsDiffer(
-  tpl: CopyTemplate,
-  fields: Partial<Record<CopyFieldKey, boolean>>,
-): boolean {
-  return (Object.keys(COPY_FIELD_LABELS) as CopyFieldKey[]).some(
-    (k) => !!tpl.fields[k] !== !!fields[k],
-  );
-}
-
-/** Rebuild the template <select>: built-in group, custom group (with a `*`
- *  dirty marker on the active one if edited), a one-off "Update …" option when
- *  the active custom template has unsaved changes, and "Save current as …".
- *  The delete button shows only for an active custom template. */
-export function renderCopyTemplatePicker(): void {
-  if (!state.modalEl) return;
-  const sel = state.modalEl.querySelector('.copy-template-picker');
-  const delBtn = state.modalEl.querySelector<HTMLElement>('.copy-template-delete');
-  if (!sel) return;
-  const customs = state.settings.copyTemplates;
-  const opts: string[] = [];
-  opts.push(
-    '<option value="" disabled' +
-      (!state.activeCopyTemplateId ? ' selected' : '') +
-      '>Template…</option>',
-  );
-  opts.push('<optgroup label="Built-in">');
-  for (const t of BUILTIN_COPY_TEMPLATES) {
-    const s = state.activeCopyTemplateId === t.id ? ' selected' : '';
-    opts.push(
-      '<option value="' +
-        escHtml(t.id) +
-        '" title="' +
-        escHtml(copyTemplateTooltip(t, null)) +
-        '"' +
-        s +
-        '>' +
-        escHtml(t.name) +
-        '</option>',
-    );
-  }
-  opts.push('</optgroup>');
-  if (customs.length > 0) {
-    opts.push('<optgroup label="My templates">');
-    for (const t of customs) {
-      const isActive = state.activeCopyTemplateId === t.id;
-      const dirty = isActive && templateFieldsDiffer(t, state.settings.copyFields);
-      const label = escHtml(t.name) + (dirty ? ' *' : '');
-      const tip = escHtml(copyTemplateTooltip(t, dirty ? state.settings.copyFields : null));
-      const s = isActive ? ' selected' : '';
-      opts.push(
-        '<option value="' + escHtml(t.id) + '" title="' + tip + '"' + s + '>' + label + '</option>',
-      );
-    }
-    opts.push('</optgroup>');
-  }
-  const isCustomActive =
-    !!state.activeCopyTemplateId && !state.activeCopyTemplateId.startsWith('builtin:');
-  if (isCustomActive) {
-    const activeTpl = state.settings.copyTemplates.find((t) => t.id === state.activeCopyTemplateId);
-    if (activeTpl && templateFieldsDiffer(activeTpl, state.settings.copyFields)) {
-      opts.push(
-        '<option value="__update__" title="Overwrite this template with the currently checked fields">↻ Update "' +
-          escHtml(activeTpl.name) +
-          '"</option>',
-      );
-    }
-  }
-  opts.push('<option value="__save__">＋ Save current as template…</option>');
-  sel.innerHTML = opts.join('');
-  if (delBtn) delBtn.style.display = isCustomActive ? '' : 'none';
-}
-
 // ── Markdown export builder ───────────────────────────────────────────────
 
+// Headers whose values are credentials: never include them in an AI prompt,
+// which users paste into third-party tools.
+const SENSITIVE_HEADERS = new Set([
+  'authorization',
+  'proxy-authorization',
+  'cookie',
+  'set-cookie',
+  'x-api-key',
+]);
+
+/** Format a header bag as `key: value` lines, masking credential values when
+ *  `redact` is on (the AI format). */
+function headerLines(h: Record<string, string>, redact: boolean): string[] {
+  return Object.keys(h).map((k) => {
+    const v = redact && SENSITIVE_HEADERS.has(k.toLowerCase()) ? '[redacted]' : (h[k] ?? '');
+    return k + ': ' + v;
+  });
+}
+
+/** Wrap a block in a Markdown fence so payloads can't bleed into the prose
+ *  around them. Uses a longer fence when the text already contains one. */
+function fence(text: string): string {
+  const marker = text.includes('```') ? '````' : '```';
+  return marker + '\n' + text + '\n' + marker;
+}
+
+/** Append an explicit truncation note when a body hit the interceptor's
+ *  capture cap, so an AI reading it knows the payload is incomplete. */
+function markTruncation(body: string): string {
+  return body.length >= BODY_MAX
+    ? body + '\n[body truncated at ' + String(BODY_MAX) + ' characters]'
+    : body;
+}
+
 /**
- * Build the plain-text/Markdown representation of an entry, used both for the
- * "Copy All" button and for file export. Only fields whose copy toggle is on
+ * Build the plain-text/Markdown representation of an entry, used both by the
+ * "Copy All" button and by file export. Only fields whose copy toggle is on
  * are included.
  *
- * The "AI Debug" template (`builtin:ai`) is special: it prepends a diagnosis
- * prompt and reorders the blocks error-first (error → context → page), since
- * an LLM benefits from leading with the failure. Every other template keeps the
- * human-friendly order (page → context → error).
+ * When `settings.aiFormat` is on the output is tailored for AI tools: blocks
+ * are reordered error-first (error → context → page), multi-line payloads are
+ * fenced, credential headers are redacted, capped bodies get a truncation
+ * note, breadcrumbs become a timeline ending at the failure. Otherwise the order is
+ * human-friendly (page → context → error) and content is copied verbatim.
  */
 export function buildModalText(e: Entry): string {
   const cf = state.settings.copyFields;
   const include = (key: CopyFieldKey): boolean => cf[key] !== false;
-  const isAi = state.activeCopyTemplateId === 'builtin:ai';
+  const isAi = state.settings.aiFormat;
 
-  // Three buckets, filled independently, then concatenated in an order that
-  // depends on the AI flag (see below).
   const pageSection: string[] = [];
   const contextSection: string[] = [];
   const errorSection: string[] = [];
@@ -376,16 +317,23 @@ export function buildModalText(e: Entry): string {
     contextSection.push(
       'SEEN: First ' +
         formatTime(e.firstSeen) +
-        ' - Last ' +
+        ', Last ' +
         formatTime(e.timestamp) +
         ' ×' +
         String(e.count),
     );
   }
   if (e.breadcrumbs && e.breadcrumbs.length > 0 && include('breadcrumbs')) {
-    contextSection.push('\nBREADCRUMBS:');
-    for (const c of e.breadcrumbs) {
-      contextSection.push(formatTime(c.timestamp) + '  ' + crumbType(c) + '  ' + c.message);
+    const crumbLines = e.breadcrumbs.map(
+      (c) => formatTime(c.timestamp) + '  ' + crumbType(c) + '  ' + c.message,
+    );
+    if (isAi) {
+      crumbLines.push(formatTime(e.timestamp) + '  FAIL   this entry (see above)');
+      contextSection.push('\nTIMELINE (oldest first, ends at this failure):');
+      contextSection.push(fence(crumbLines.join('\n')));
+    } else {
+      contextSection.push('\nBREADCRUMBS:');
+      contextSection.push(...crumbLines);
     }
   }
   if (e.kind === 'network') {
@@ -393,14 +341,13 @@ export function buildModalText(e: Entry): string {
       errorSection.push('\nREQUEST: ' + (e.method ?? 'GET') + ' ' + (e.url ?? ''));
     }
     if (e.reqHeaders && include('requestHeaders')) {
+      const lines = headerLines(e.reqHeaders, isAi);
       errorSection.push('\nREQUEST HEADERS:');
-      for (const k of Object.keys(e.reqHeaders)) {
-        errorSection.push(k + ': ' + (e.reqHeaders[k] ?? ''));
-      }
+      errorSection.push(isAi ? fence(lines.join('\n')) : lines.join('\n'));
     }
     if (e.reqBody && include('requestBody')) {
       errorSection.push('\nREQUEST BODY:');
-      errorSection.push(e.reqBody);
+      errorSection.push(isAi ? fence(markTruncation(e.reqBody)) : e.reqBody);
     }
     if (include('response')) {
       errorSection.push(
@@ -413,24 +360,23 @@ export function buildModalText(e: Entry): string {
       );
     }
     if (e.resHeaders && include('responseHeaders')) {
+      const lines = headerLines(e.resHeaders, isAi);
       errorSection.push('\nRESPONSE HEADERS:');
-      for (const k of Object.keys(e.resHeaders)) {
-        errorSection.push(k + ': ' + (e.resHeaders[k] ?? ''));
-      }
+      errorSection.push(isAi ? fence(lines.join('\n')) : lines.join('\n'));
     }
     if (e.resBody && include('responseBody')) {
       errorSection.push('\nRESPONSE BODY:');
-      errorSection.push(e.resBody);
+      errorSection.push(isAi ? fence(markTruncation(e.resBody)) : e.resBody);
     }
     if (e.stack && include('callStack')) {
       errorSection.push('\nCALL STACK:');
-      errorSection.push(e.stack);
+      errorSection.push(isAi ? fence(e.stack) : e.stack);
     }
   } else {
     if (include('message')) errorSection.push('\nMESSAGE: ' + e.message);
     if (e.stack && include('stack')) {
       errorSection.push('\nSTACK:');
-      errorSection.push(e.stack);
+      errorSection.push(isAi ? fence(e.stack) : e.stack);
     } else if (e.filename && include('location')) {
       errorSection.push('LOCATION: ' + e.filename + ':' + String(e.lineno ?? ''));
     }
@@ -438,12 +384,9 @@ export function buildModalText(e: Entry): string {
 
   let lines: string[] = [];
   if (isAi) {
-    lines.push(
-      'Help diagnose this captured browser error. Identify the likely root cause and where to look in the code.\n',
-    );
     lines = lines.concat(errorSection, contextSection, pageSection);
   } else {
     lines = lines.concat(pageSection, contextSection, errorSection);
   }
-  return lines.join('\n');
+  return lines.join('\n').trimStart();
 }

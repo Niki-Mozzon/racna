@@ -13,7 +13,8 @@ Entries are generated from per-PR changeset files at release time.
 ### Added
 
 - First version of the extension: error and network capture, overlay panel,
-  ignore/watch rules, copy templates, Markdown export, per-site enable
+  ignore/watch rules, Markdown export with an AI-ready format toggle,
+  per-site enable
 - Project setup: TypeScript strict mode, esbuild, ESLint flat config, Prettier,
   Husky + lint-staged, commitlint, Vitest, Changesets, GitHub Actions CI
 - Octagram brand mark
