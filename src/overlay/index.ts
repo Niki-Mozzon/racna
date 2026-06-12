@@ -106,6 +106,9 @@ function buildUI(): void {
   listEl.className = 'plist';
   state.listEl = listEl;
 
+  // Baseline tooltips before storage hydrates; bootstrapState() re-syncs them.
+  updateExportTooltips();
+
   headerEl.querySelector('#en-export')?.addEventListener('click', () => {
     exportEntries(visibleEntries());
   });
@@ -304,6 +307,7 @@ function buildUI(): void {
     if (ai) {
       state.settings.aiFormat = ai.checked;
       setSetting('aiFormat', ai.checked);
+      updateExportTooltips();
       return;
     }
     const input = target.closest<HTMLInputElement>('input[data-copy-field]');
@@ -732,6 +736,7 @@ function wireStorageSubscription(): void {
       }
       if (changes.theme) applyTheme(state.settings.theme);
       if (changes.position) applyPosition(state.settings.position);
+      if (changes.aiFormat) updateExportTooltips();
       if (state.domReady) render();
       if (state.settingsModalEl && state.settingsModalEl.style.display !== 'none') {
         renderSettingsModal();
@@ -740,6 +745,17 @@ function wireStorageSubscription(): void {
   } catch {
     /* ignore */
   }
+}
+
+/** Keep the Export buttons' tooltips in sync with the AI format flag. The
+ *  flag lives in the entry modal, so without this the panel would give no
+ *  hint about which format a bulk export will produce. */
+function updateExportTooltips(): void {
+  const suffix = state.settings.aiFormat ? ' (AI format)' : '';
+  const all = state.headerEl?.querySelector<HTMLElement>('#en-export');
+  if (all) all.title = 'Export all visible errors to a Markdown file' + suffix;
+  const picked = state.selectionBarEl?.querySelector<HTMLElement>('#en-export-selected');
+  if (picked) picked.title = 'Export the selected errors to a Markdown file' + suffix;
 }
 
 /** Load persisted state from storage into the live `state` and repaint. Failure
@@ -753,6 +769,7 @@ async function bootstrapState(): Promise<void> {
     state.enabledSites = data.enabledSites;
     applyTheme(state.settings.theme);
     applyPosition(state.settings.position);
+    updateExportTooltips();
     if (state.domReady) render();
   } catch {
     /* fall back to defaults */

@@ -66,7 +66,8 @@ Walk the **Suggested checklist** in [`README.md`](./README.md):
       Markdown (page first); with it on, the copy leads with the error, fences
       payloads, and shows a TIMELINE block
 - [ ] **AI toggle persists**: flip it, close and reopen the modal (and reload
-      the page); the switch keeps its state and Export uses the same format
+      the page); the switch keeps its state, Export uses the same format, and
+      the Export buttons' tooltips show "(AI format)" while the switch is on
 - [ ] **Copy format payloads**: fire the three "Copy format payloads" buttons;
       in the AI copy, the 60 KB body entry carries a
       `[body truncated at 50000 characters]` marker and the fence-in-body
