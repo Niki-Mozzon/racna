@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Racna interactive playground</title>
+    <link rel="icon" type="image/svg+xml" href="../icon.svg" />
+    <style>
+      :root {
+        --bg: #fafafa;
+        --panel: #ffffff;
+        --border: #e0e0e6;
+        --text: #1a1a22;
+        --muted: #707080;
+        --accent: #aa66ff;
+        --accent-hover: #8a4adb;
+        --err: #d33;
+        --warn: #c80;
+        --ok: #2a8;
+        --net: #07a;
+
+        /* Surfaces, tokenized so they respond to the theme */
+        --code-bg: #ececf2;
+        --tag-bg: #f0f0f4;
+        --btn-bg: #ffffff;
+        --log-bg: #f6f6f9;
+        --btn-hover-bg: #f4eeff;
+        --danger-hover-bg: #fdecec;
+        --warn-hover-bg: #fff3df;
+        --net-hover-bg: #e8f4fc;
+      }
+      [data-theme='dark'] {
+        --bg: #16161a;
+        --panel: #1e1e24;
+        --border: #34343e;
+        --text: #e4e4ec;
+        --muted: #9b9bac;
+        --accent: #b985ff;
+        --accent-hover: #cda8ff;
+        --err: #ff6b6b;
+        --warn: #e0a73a;
+        --ok: #35c89b;
+        --net: #4bb4e8;
+
+        --code-bg: #2a2a32;
+        --tag-bg: #2a2a32;
+        --btn-bg: #26262e;
+        --log-bg: #131318;
+        --btn-hover-bg: #2e2440;
+        --danger-hover-bg: #3a2024;
+        --warn-hover-bg: #332813;
+        --net-hover-bg: #16303d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.5;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+      .site-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .site-head svg {
+        width: 22px;
+        height: 22px;
+        flex: none;
+      }
+      .site-head a {
+        color: var(--text);
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .site-head a:hover {
+        color: var(--accent-hover);
+      }
+      .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 20px;
+      }
+      .theme-toggle {
+        flex: none;
+        white-space: nowrap;
+      }
+      .intro {
+        color: var(--muted);
+        margin-bottom: 12px;
+        max-width: 760px;
+      }
+      .intro-note {
+        color: var(--muted);
+        font-size: 12px;
+        margin: 0 0 24px;
+        max-width: 760px;
+      }
+      .intro-note code {
+        background: var(--code-bg);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 11px;
+      }
+      .intro code {
+        background: var(--code-bg);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 24px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .sections {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+      section h2 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+      }
+      section h2 .tag {
+        display: inline-block;
+        margin-left: 6px;
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: var(--tag-bg);
+        color: var(--muted);
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 600;
+        vertical-align: 1px;
+      }
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        padding: 6px 11px;
+        border: 1px solid var(--border);
+        background: var(--btn-bg);
+        color: var(--text);
+        border-radius: 5px;
+        transition:
+          background 0.1s,
+          border-color 0.1s,
+          color 0.1s;
+      }
+      button:hover {
+        background: var(--btn-hover-bg);
+        border-color: var(--accent);
+        color: var(--accent-hover);
+      }
+      button.danger:hover {
+        background: var(--danger-hover-bg);
+        border-color: var(--err);
+        color: var(--err);
+      }
+      button.warn:hover {
+        background: var(--warn-hover-bg);
+        border-color: var(--warn);
+        color: var(--warn);
+      }
+      button.net:hover {
+        background: var(--net-hover-bg);
+        border-color: var(--net);
+        color: var(--net);
+      }
+      .hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 8px;
+        font-style: italic;
+      }
+      aside {
+        position: sticky;
+        top: 24px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+      aside h2 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+      }
+      .log {
+        margin: 0;
+        max-height: 360px;
+        overflow-y: auto;
+        font-family: ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace;
+        font-size: 11px;
+        color: var(--text);
+        background: var(--log-bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 8px 10px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .log .empty {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .log-actions {
+        margin-top: 8px;
+        display: flex;
+        gap: 6px;
+      }
+      .log-actions button {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      a.external {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a.external:hover {
+        text-decoration: underline;
+      }
+    </style>
+    <script>
+      // Set the theme before first paint to avoid a flash. Saved choice wins;
+      // otherwise default to dark, matching the rest of the site.
+      (function () {
+        try {
+          var saved = localStorage.getItem('racna-harness-theme');
+          var dark = saved ? saved === 'dark' : true;
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (_) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="site-head">
+      <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="brand" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#aa66ff" />
+            <stop offset="100%" stop-color="#8a4adb" />
+          </linearGradient>
+        </defs>
+        <g transform="translate(0,800) scale(0.1,-0.1)" fill="url(#brand)" stroke="none">
+          <path
+            d="M2296 7492 c-276 -722 -398 -954 -615 -1173 -218 -218 -459 -344 -1206 -629 -132 -51 -243 -95 -247 -98 -3 -4 16 -56 44 -117 337 -743 445 -1048 478 -1355 24 -219 -23 -485 -143 -807 -46 -121 -204 -493 -320 -753 -36 -80 -62 -148 -59 -151 4 -4 133 -55 286 -114 720 -276 947 -396 1167 -614 167 -167 288 -367 434 -716 60 -145 225 -565 270 -690 10 -27 20 -51 21 -53 1 -2 78 35 172 82 581 291 896 422 1144 478 148 33 408 33 556 0 248 -56 563 -187 1144 -478 94 -47 171 -84 172 -82 1 2 28 73 60 158 298 794 443 1079 665 1301 218 217 434 331 1166 614 160 62 289 117 288 121 -1 5 -78 167 -171 359 -327 676 -397 876 -409 1171 -14 338 68 586 442 1351 79 161 140 295 137 297 -4 2 -115 45 -247 96 -749 286 -988 411 -1206 629 -221 222 -369 511 -665 1301 -32 85 -58 156 -59 158 -1 1 -139 -65 -306 -147 -733 -358 -975 -441 -1289 -441 -314 0 -558 83 -1279 436 -173 85 -315 154 -315 154 -1 0 -50 -130 -110 -288z m1086 -786 c172 -75 291 -115 423 -141 154 -31 236 -31 390 0 201 41 356 103 803 321 175 85 275 129 277 121 88 -248 248 -642 317 -782 180 -360 358 -520 788 -705 105 -45 513 -204 623 -243 15 -6 5 -31 -77 -194 -213 -427 -320 -683 -362 -873 -24 -106 -24 -301 -1 -410 44 -201 121 -391 333 -821 106 -214 121 -251 106 -256 -98 -35 -487 -187 -601 -234 -431 -178 -625 -348 -800 -698 -73 -144 -220 -506 -324 -794 -6 -15 -25 -8 -159 59 -625 313 -864 398 -1118 398 -253 0 -491 -84 -1103 -390 -147 -74 -168 -82 -174 -67 -38 106 -201 522 -233 599 -211 496 -392 680 -863 881 -102 43 -525 209 -629 246 -15 5 -9 23 43 139 257 564 347 821 367 1046 24 280 -53 539 -366 1230 -40 87 -57 135 -49 137 247 87 644 248 782 317 320 160 473 313 633 633 69 140 229 534 317 782 2 8 102 -36 277 -121 150 -74 321 -155 380 -180z"
+          />
+          <path
+            d="M3010 6320 c0 -19 -172 -455 -220 -557 -100 -212 -210 -348 -363 -447 -118 -77 -194 -113 -468 -221 -134 -53 -254 -100 -267 -105 -26 -11 -33 11 68 -215 235 -528 276 -721 211 -990 -38 -153 -98 -307 -287 -733 -14 -31 -13 -33 8 -42 13 -5 133 -52 268 -105 442 -174 590 -272 724 -477 77 -119 112 -194 221 -469 53 -134 100 -254 105 -267 10 -22 10 -22 112 29 329 165 565 262 715 294 87 19 239 19 326 0 150 -31 389 -130 725 -299 l92 -46 10 22 c5 13 52 133 105 267 108 273 144 349 221 469 134 205 282 303 724 477 135 53 255 100 267 105 21 9 20 14 -74 207 -216 447 -263 587 -263 783 0 199 72 405 300 859 60 121 60 121 38 131 -13 5 -133 52 -267 105 -274 108 -350 144 -468 221 -104 67 -190 153 -257 257 -77 119 -113 195 -221 468 -53 134 -100 254 -105 266 -9 21 -16 19 -242 -91 -247 -120 -364 -170 -506 -213 -78 -24 -102 -27 -242 -27 -141 0 -163 3 -245 28 -140 42 -251 89 -504 212 -129 63 -236 114 -238 114 -1 0 -3 -5 -3 -10z m540 -748 c232 -113 307 -135 445 -136 157 -1 230 23 559 185 88 44 161 79 163 79 1 0 3 -5 3 -10 0 -18 146 -382 180 -451 111 -218 210 -294 580 -440 113 -45 207 -83 209 -85 2 -2 -39 -95 -92 -206 -53 -112 -111 -246 -129 -298 -29 -86 -32 -106 -32 -210 0 -104 3 -124 32 -208 17 -51 75 -185 129 -297 53 -113 94 -207 91 -210 -3 -3 -81 -35 -173 -70 -385 -149 -479 -215 -589 -409 -42 -74 -206 -469 -206 -496 0 -7 -3 -10 -7 -8 -5 2 -48 24 -98 49 -282 145 -492 219 -615 219 -123 0 -328 -73 -629 -225 l-85 -42 -78 200 c-181 465 -244 526 -722 711 -93 36 -171 68 -174 71 -7 7 -6 9 92 233 190 435 188 545 -18 1007 -42 94 -76 175 -76 180 0 6 94 48 208 93 374 148 471 222 582 441 34 68 180 433 180 450 0 12 39 -5 270 -117z"
+          />
+        </g>
+      </svg>
+      <a href="../">Racna</a>
+    </div>
+    <div class="page-head">
+      <h1>Interactive playground</h1>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+        🌙 Dark
+      </button>
+    </div>
+    <p class="intro">
+      A clicking playground for every kind of error Racna can capture. Each button below fires one
+      specific scenario; watch the Racna badge, panel, or toast react, and the log on the right
+      confirms what fired. You need the Racna extension installed, with this site switched on from
+      the toolbar popup (on <code>localhost</code> it is enabled out of the box).
+    </p>
+    <p class="intro-note">
+      Running from a clone rather than the live site? Serve this folder over a static server: run
+      <code>serve.cmd</code> in this folder (or
+      <code>npx http-server docs/harness -p 8000 -o</code> from the project root), then open
+      <a class="external" href="http://localhost:8000">http://localhost:8000</a>.
+    </p>
+
+    <div class="layout">
+      <div class="sections">
+        <section>
+          <h2>Console <span class="tag">kind: console</span></h2>
+          <div class="btns">
+            <button class="danger" onclick="fireConsoleError()">console.error</button>
+            <button class="danger" onclick="fireConsoleErrorObject()">
+              console.error w/ object
+            </button>
+            <button class="danger" onclick="fireConsoleErrorWithErrorObj()">
+              console.error(new Error)
+            </button>
+            <button class="warn" onclick="fireConsoleWarn()">console.warn</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Uncaught <span class="tag">kind: uncaught</span></h2>
+          <div class="btns">
+            <button class="danger" onclick="fireUncaughtError()">
+              throw Error (via setTimeout)
+            </button>
+            <button class="danger" onclick="fireUncaughtString()">
+              throw "string" (via setTimeout)
+            </button>
+            <button class="danger" onclick="fireTypeError()">trigger TypeError</button>
+            <button class="danger" onclick="fireSyntheticNoStack()">
+              synthetic ErrorEvent (no stack, Location case)
+            </button>
+          </div>
+          <div class="hint">
+            The synthetic ErrorEvent has <code>filename</code> + <code>lineno</code> but no
+            <code>error</code> object, so the Racna modal renders <strong>Location</strong> instead
+            of <strong>Stack Trace</strong>.
+          </div>
+        </section>
+
+        <section>
+          <h2>Promise rejection <span class="tag">kind: rejection</span></h2>
+          <div class="btns">
+            <button class="danger" onclick="fireRejectError()">Promise.reject(new Error)</button>
+            <button class="danger" onclick="fireRejectString()">Promise.reject("reason")</button>
+            <button class="danger" onclick="fireAsyncThrow()">async fn that throws</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Network (fetch) <span class="tag">kind: network</span></h2>
+          <div class="btns">
+            <button class="net" onclick="fireFetchLocal404()">
+              GET /does-not-exist (local 404)
+            </button>
+            <button class="net" onclick="fireFetch500()">GET httpbin.org/status/500</button>
+            <button class="net" onclick="fireFetchPost500()">
+              POST httpbin.org/status/500 w/ body
+            </button>
+            <button class="net" onclick="fireFetchNetworkError()">
+              GET nonexistent-domain (network error)
+            </button>
+            <button class="net" onclick="fireFetchSlowAbort()">
+              GET httpbin.org/delay/10 → abort after 3 s
+            </button>
+          </div>
+          <div class="hint">
+            Slow + abort exercises the <code>duration</code> field on the network entry, so you
+            should see a ~3000 ms reading on the resulting <strong>Network Error</strong>.
+          </div>
+        </section>
+
+        <section>
+          <h2>Network (XHR) <span class="tag">kind: network</span></h2>
+          <div class="btns">
+            <button class="net" onclick="fireXhr500()">XHR GET httpbin.org/status/500</button>
+            <button class="net" onclick="fireXhrNetworkError()">XHR GET nonexistent-domain</button>
+            <button class="net" onclick="fireXhrAbort()">
+              XHR GET httpbin.org/delay/10 → abort after 2 s
+            </button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Breadcrumb scenarios</h2>
+          <div class="btns">
+            <button onclick="scenarioLogsThenError()">5 console.logs → console.error</button>
+            <button onclick="scenarioFetchesThenError()">
+              3 successful fetches → console.error
+            </button>
+            <button onclick="scenarioClickNavError()">click → pushState nav → throw</button>
+          </div>
+          <div class="hint">
+            After triggering, open the resulting entry's modal; the
+            <strong>Breadcrumbs</strong> section should show the preceding activity in order, each
+            tagged with its type (LOG / HTTP / NAV / CLICK).
+          </div>
+        </section>
+
+        <section>
+          <h2>Watch / Ignore matching</h2>
+          <div class="btns">
+            <button onclick="fireApiFooError()">console.error: "API /api/foo failed"</button>
+            <button onclick="fireTypeErrorReadOf()">
+              throw TypeError "cannot read properties of undefined"
+            </button>
+            <button onclick="fireFetch500Stable()">
+              fetch /api/checkout (500), for url-pattern watch
+            </button>
+          </div>
+          <div class="hint">
+            Use these to test your Watch / Ignore rules. Create a rule first in Racna (eye icon for
+            Watch, eye-off for Ignore), then fire the matching error and verify the toast appears
+            (Watch) or the entry is suppressed (Ignore).
+          </div>
+        </section>
+
+        <section>
+          <h2>Burst</h2>
+          <div class="btns">
+            <button onclick="fireBurst()">Trigger 10 mixed errors in rapid succession</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Flood / lag <span class="tag">throttle · dedup · circuit breaker</span></h2>
+          <div class="btns">
+            <button class="danger" onclick="fireAbabLoop()">
+              A,B,A,B loop ×40 (dedup → 2 rows)
+            </button>
+            <button class="net" onclick="fireRouteLoop()">
+              fetch /route/1…/route/8 (distinct rows)
+            </button>
+            <button class="danger" onclick="fireFlood()">
+              Flood: 200 errors fast (trips pause)
+            </button>
+          </div>
+          <div class="hint">
+            The A,B,A,B loop should settle into exactly <strong>two</strong> rows with climbing
+            ×counts (not 80 rows) and stay smooth. The route loop should produce
+            <strong>one row per path</strong> (no false merge). The flood should pause capture and
+            show the ⚠ banner; already-captured entries stay clickable, and <strong>Resume</strong>
+            re-opens capture (re-pausing if the flood is still running).
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <h2>Activity log</h2>
+        <div class="log" id="log">
+          <span class="empty">No activity yet. Click a button to fire a scenario.</span>
+        </div>
+        <div class="log-actions">
+          <button onclick="clearLog()">Clear log</button>
+          <button onclick="reloadPage()">Reload page</button>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      // ── Theme toggle ──────────────────────────────────────────────────────────
+      // The initial theme is set by the inline <head> script (pre-paint). Here we
+      // just keep the button label in sync and persist the user's choice.
+      const themeToggle = document.getElementById('theme-toggle');
+      function syncThemeLabel() {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeToggle.textContent = dark ? '☀ Light' : '🌙 Dark';
+      }
+      syncThemeLabel();
+      themeToggle.addEventListener('click', () => {
+        const next =
+          document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('racna-harness-theme', next);
+        } catch (_) {}
+        syncThemeLabel();
+      });
+
+      // ── Activity log ────────────────────────────────────────────────────────
+      const logEl = document.getElementById('log');
+      let logEmpty = true;
+      function log(msg) {
+        if (logEmpty) {
+          logEl.textContent = '';
+          logEmpty = false;
+        }
+        const time = new Date().toTimeString().slice(0, 8);
+        logEl.textContent = time + '  ' + msg + '\n' + logEl.textContent;
+      }
+      function clearLog() {
+        logEl.innerHTML =
+          '<span class="empty">No activity yet. Click a button to fire a scenario.</span>';
+        logEmpty = true;
+      }
+      function reloadPage() {
+        window.location.reload();
+      }
+
+      // ── Console ─────────────────────────────────────────────────────────────
+      function fireConsoleError() {
+        log('fired: console.error("Test error from harness")');
+        console.error('Test error from harness');
+      }
+      function fireConsoleErrorObject() {
+        log('fired: console.error with object payload');
+        console.error('Failed to process:', { id: 42, payload: { foo: 'bar', items: [1, 2, 3] } });
+      }
+      function fireConsoleErrorWithErrorObj() {
+        log('fired: console.error(new Error(...))');
+        console.error(new Error('Wrapped Error object passed to console.error'));
+      }
+      function fireConsoleWarn() {
+        log('fired: console.warn("Test warning from harness")');
+        console.warn('Test warning from harness');
+      }
+
+      // ── Uncaught ────────────────────────────────────────────────────────────
+      function fireUncaughtError() {
+        log('fired: setTimeout → throw new Error');
+        setTimeout(() => {
+          throw new Error('Uncaught Error from harness');
+        }, 0);
+      }
+      function fireUncaughtString() {
+        log('fired: setTimeout → throw "string"');
+        setTimeout(() => {
+          throw 'Uncaught string thrown from harness';
+        }, 0);
+      }
+      function fireTypeError() {
+        log('fired: setTimeout → undefined.foo (TypeError)');
+        setTimeout(() => {
+          const obj = undefined;
+          // eslint-disable-next-line no-unused-expressions
+          obj.foo;
+        }, 0);
+      }
+      function fireSyntheticNoStack() {
+        log('fired: dispatchEvent(ErrorEvent): filename+lineno, no error obj');
+        window.dispatchEvent(
+          new ErrorEvent('error', {
+            message: 'Synthetic error from harness (no stack)',
+            filename: 'https://example.com/fake-source.js',
+            lineno: 42,
+            colno: 7,
+          }),
+        );
+      }
+
+      // ── Promise rejection ───────────────────────────────────────────────────
+      function fireRejectError() {
+        log('fired: Promise.reject(new Error)');
+        Promise.reject(new Error('Rejected promise from harness'));
+      }
+      function fireRejectString() {
+        log('fired: Promise.reject("string")');
+        Promise.reject('Rejected with string reason');
+      }
+      function fireAsyncThrow() {
+        log('fired: async fn that throws');
+        (async () => {
+          throw new Error('Thrown inside async function');
+        })();
+      }
+
+      // ── Network (fetch) ─────────────────────────────────────────────────────
+      function fireFetchLocal404() {
+        log('fired: fetch("/does-not-exist"), expect local 404');
+        fetch('/does-not-exist').catch(() => {});
+      }
+      function fireFetch500() {
+        log('fired: fetch httpbin.org/status/500');
+        fetch('https://httpbin.org/status/500').catch(() => {});
+      }
+      function fireFetchPost500() {
+        log('fired: POST httpbin.org/status/500 with JSON body');
+        fetch('https://httpbin.org/status/500', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Harness': 'true' },
+          body: JSON.stringify({ orderId: 42, items: [{ sku: 'X', qty: 2 }] }),
+        }).catch(() => {});
+      }
+      function fireFetchNetworkError() {
+        log('fired: fetch nonexistent domain, expect status 0');
+        fetch('https://this-domain-does-not-exist-' + Date.now().toString(36) + '.invalid/').catch(
+          () => {},
+        );
+      }
+      function fireFetchSlowAbort() {
+        log('fired: fetch httpbin.org/delay/10 → abort after 3 s');
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 3000);
+        fetch('https://httpbin.org/delay/10', { signal: ctrl.signal }).catch(() => {});
+      }
+
+      // ── Network (XHR) ───────────────────────────────────────────────────────
+      function fireXhr500() {
+        log('fired: XHR GET httpbin.org/status/500');
+        const x = new XMLHttpRequest();
+        x.open('GET', 'https://httpbin.org/status/500');
+        x.send();
+      }
+      function fireXhrNetworkError() {
+        log('fired: XHR GET nonexistent domain');
+        const x = new XMLHttpRequest();
+        x.open(
+          'GET',
+          'https://this-domain-does-not-exist-' + Date.now().toString(36) + '.invalid/',
+        );
+        x.send();
+      }
+      function fireXhrAbort() {
+        log('fired: XHR GET httpbin.org/delay/10 → abort after 2 s');
+        const x = new XMLHttpRequest();
+        x.open('GET', 'https://httpbin.org/delay/10');
+        x.send();
+        setTimeout(() => x.abort(), 2000);
+      }
+
+      // ── Breadcrumb scenarios ────────────────────────────────────────────────
+      function scenarioLogsThenError() {
+        log('fired: 5 console.logs then 1 console.error');
+        for (let i = 1; i <= 5; i++) console.log('Harness breadcrumb #' + i);
+        setTimeout(() => console.error('Error preceded by 5 logs'), 50);
+      }
+      function scenarioFetchesThenError() {
+        log('fired: 3 fetches then console.error');
+        // Use successful fetches to local server (these return 200 so they only become breadcrumbs, not entries).
+        Promise.all([
+          fetch('/').catch(() => {}),
+          fetch('/').catch(() => {}),
+          fetch('/').catch(() => {}),
+        ]).then(() => console.error('Error after 3 successful fetches'));
+      }
+      function scenarioClickNavError() {
+        log('fired: synthetic click → history.pushState → throw');
+        document.body.click();
+        try {
+          history.pushState({ harness: true }, '', '/harness-nav-' + Date.now());
+        } catch (_) {}
+        setTimeout(() => {
+          throw new Error('Error after click + nav breadcrumbs');
+        }, 30);
+      }
+
+      // ── Watch / Ignore matching ─────────────────────────────────────────────
+      function fireApiFooError() {
+        log('fired: console.error matching pattern "/api/foo"');
+        console.error('API /api/foo failed: 500 Internal Server Error');
+      }
+      function fireTypeErrorReadOf() {
+        log('fired: synthetic TypeError "cannot read properties of undefined"');
+        setTimeout(() => {
+          const o = undefined;
+          // eslint-disable-next-line no-unused-expressions
+          o.someField;
+        }, 0);
+      }
+      function fireFetch500Stable() {
+        log('fired: fetch httpbin.org/anything/api/checkout → 500 (for url-pattern watch)');
+        // Using a stable-looking URL path so a rule like "/api/checkout" matches.
+        fetch('https://httpbin.org/status/500?path=/api/checkout').catch(() => {});
+      }
+
+      // ── Burst ───────────────────────────────────────────────────────────────
+      function fireBurst() {
+        log('fired: BURST: 10 mixed errors in rapid succession');
+        console.error('Burst 1/10');
+        console.warn('Burst 2/10');
+        Promise.reject(new Error('Burst 3/10: rejection'));
+        setTimeout(() => {
+          throw new Error('Burst 4/10: uncaught');
+        }, 5);
+        fetch('/does-not-exist?burst=5').catch(() => {});
+        fetch('https://httpbin.org/status/500?burst=6').catch(() => {});
+        setTimeout(() => console.error('Burst 7/10'), 10);
+        Promise.reject('Burst 8/10: string rejection');
+        const x = new XMLHttpRequest();
+        x.open('GET', 'https://httpbin.org/status/500?burst=9');
+        x.send();
+        window.dispatchEvent(
+          new ErrorEvent('error', {
+            message: 'Burst 10/10: synthetic',
+            filename: 'https://example.com/burst.js',
+            lineno: 100,
+          }),
+        );
+      }
+
+      // ── Flood / lag ───────────────────────────────────────────────────────────
+      function fireAbabLoop() {
+        log('fired: A,B,A,B console.error loop ×40');
+        for (let i = 0; i < 40; i++) {
+          console.error(i % 2 === 0 ? 'Flood test error A' : 'Flood test error B');
+        }
+      }
+      function fireRouteLoop() {
+        log('fired: fetch /route/1 … /route/8 (distinct local 404s)');
+        for (let i = 1; i <= 8; i++) {
+          fetch('/route/' + i).catch(() => {});
+        }
+      }
+      function fireFlood() {
+        log('fired: FLOOD: 200 console.errors as fast as possible');
+        for (let i = 0; i < 200; i++) {
+          console.error('Flood burst error #' + i);
+        }
+      }
+    </script>
+  </body>
+</html>

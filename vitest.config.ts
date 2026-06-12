@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/unit/**/*.test.ts'],
-    exclude: ['tests/manual/**', 'node_modules/**', 'dist/**'],
+    exclude: ['docs/harness/**', 'node_modules/**', 'dist/**'],
     passWithNoTests: true,
     coverage: {
       provider: 'v8',

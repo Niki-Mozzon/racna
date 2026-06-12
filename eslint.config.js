@@ -12,7 +12,7 @@ export default tseslint.config(
       'node_modules/**',
       '.changeset/**',
       '.husky/**',
-      'tests/manual/**',
+      'docs/harness/**',
       '**/*.min.js',
       'src/interceptor.js',
       'src/overlay.js',
