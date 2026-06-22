@@ -612,6 +612,34 @@ export const CSS = `
 }
 .ai-flag-text { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--txt-5); }
 .ai-flag:hover .ai-flag-text { color: var(--txt-3); }
+.srule-row { padding: 5px 0; border-bottom: 1px solid rgba(var(--fg-rgb),0.05); }
+.srule-row:last-child { border-bottom: none; }
+.srule-line { display: flex; align-items: center; gap: 6px; }
+.srule-icon { flex-shrink: 0; display: inline-flex; font-size: 13px; line-height: 0; color: var(--txt-4); }
+.srule-icon.cons { color: #ff5555; }
+.srule-icon.net { color: #aa66ff; }
+.srule-icon.watch { color: #aa66ff; }
+.srule-desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--txt-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.srule-note-badge { flex-shrink: 0; display: inline-flex; line-height: 0; color: var(--txt-5); }
+.srule-edit, .srule-del { flex-shrink: 0; }
+.srule-note {
+  margin-left: 20px;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--txt-4);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.srule-note a { color: #c89aff; }
 .srule-editing { background: rgba(170,102,255,0.04); border-radius: 4px; padding: 6px 6px 4px; }
 .srule-note-ta {
   margin-left: 20px;
