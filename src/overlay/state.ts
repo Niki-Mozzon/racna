@@ -6,7 +6,7 @@
 
 import { FLOOD_RATE } from './constants.js';
 
-import type { Entry, IgnoreRule, Settings, WatchRule } from '../shared/types.js';
+import type { Entry, IgnoreRule, Rule, Settings, WatchRule } from '../shared/types.js';
 
 // One clickable token in the rule editor's URL builder: each path segment and
 // query param becomes a segment the user can wildcard. See rules/editor.ts.
@@ -129,6 +129,8 @@ export interface OverlayState {
   ruleEditorEntry: Entry | null;
   ruleEditorSegments: EditorSegment[];
   ruleEditorConsolePattern: string;
+  ruleEditorRule: Rule | null; // existing rule being edited (rule mode), or the conflict match
+  ruleEditorPattern: string; // read-only pattern shown in the rule mode
   editingRuleId: string | null; // non-null when editing an existing rule vs creating
 }
 
@@ -176,5 +178,7 @@ export const state: OverlayState = {
   ruleEditorEntry: null,
   ruleEditorSegments: [],
   ruleEditorConsolePattern: '',
+  ruleEditorRule: null,
+  ruleEditorPattern: '',
   editingRuleId: null,
 };

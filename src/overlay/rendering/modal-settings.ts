@@ -20,8 +20,8 @@ function renderRuleRow(r: Rule, listType: RuleListType): string {
   const iconCls = listType === 'watch' ? 'watch' : r.kind === 'network' ? 'net' : 'cons';
   const desc =
     r.kind === 'network'
-      ? (r.pattern ?? r.urlPath ?? '') + (r.status != null ? ' [' + String(r.status) + ']' : '')
-      : '"' + (r.pattern ?? r.messageContains ?? '') + '"';
+      ? (r.pattern ?? '') + (r.status != null ? ' [' + String(r.status) + ']' : '')
+      : '"' + (r.pattern ?? '') + '"';
   const delAction = listType === 'ignore' ? 'del-ignore-rule' : 'del-watch-rule';
   const delAttr = listType === 'ignore' ? 'data-rule-id' : 'data-watch-rule-id';
   const note = r.note ?? '';

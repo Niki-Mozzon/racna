@@ -151,23 +151,21 @@ export interface StatusResponse {
 
 // ── Overlay-side types ─────────────────────────────────────────────────────
 
-export type RuleKind = 'network' | 'console';
+// A rule's kind mirrors the event kind it was built from (same four values as
+// EntryKind). One kind per rule: matching is now an exact kind check.
+export type RuleKind = 'network' | 'console' | 'uncaught' | 'rejection';
 export type RuleType = 'ignore' | 'watch';
 
 /** A user-defined match rule. The same shape backs both ignore rules (hide
  *  matching events) and watch rules (toast on matching events). Matching is in
- *  rules/matching.ts. The optional fields are mutually exclusive by `kind`:
- *  - `pattern` present → glob match (on URL path+search for network, on the
- *    message for console). Takes precedence over the exact fields below.
- *  - otherwise: network rules match `urlPath` + `status` exactly; console
- *    rules match a case-insensitive `messageContains` substring. */
+ *  rules/matching.ts. A network rule matches a glob `pattern` over the URL
+ *  path+search plus an exact `status`; a console-family rule (console, uncaught,
+ *  or rejection) matches a glob `pattern` over the message. */
 export interface Rule {
   id: string;
   kind: RuleKind;
   pattern?: string;
   status?: number;
-  urlPath?: string;
-  messageContains?: string;
   note?: string; // Free-text reminder shown in the rules list.
   createdAt: number;
 }

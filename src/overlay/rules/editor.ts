@@ -7,9 +7,11 @@
 
 import { state } from '../state.js';
 import { setIgnoreRules, setWatchRules } from '../storage.js';
-import { escHtml, statusClass, urlPath, urlPathAndSearch } from '../util.js';
+import { escHtml, statusClass } from '../util.js';
 
-import type { Entry, Rule } from '../../shared/types.js';
+import { ruleKey } from './matching.js';
+
+import type { Entry, Rule, RuleType } from '../../shared/types.js';
 import type { EditorSegment } from '../state.js';
 
 /** Cheap unique id for a new rule (timestamp + random suffix). */
@@ -87,29 +89,35 @@ export function buildEditorPattern(entry: Entry | null, segments: EditorSegment[
   return pathStr + queryStr;
 }
 
-// These two are a narrow, local match used only by confirmRule to find watch
-// rules that would conflict with a new ignore rule for *this specific entry*.
-// They are intentionally not rules/matching.ts: the network check compares the
-// entry's exact path against the rule pattern (not a glob), which is all we
-// need to detect "this watch rule also catches the entry being ignored".
-function ruleMatchesNetworkEntry(r: Rule, entry: Entry): boolean {
-  if (r.pattern) {
-    return urlPathAndSearch(entry.url ?? '') === r.pattern && r.status === entry.status;
-  }
-  return urlPath(entry.url ?? '') === r.urlPath && r.status === entry.status;
-}
+/**
+ * Insert or replace a rule by its canonical key. Any rule matching the same
+ * thing is first removed from BOTH lists (so a pattern can never be duplicated
+ * or live in both lists), then `rule` is added to the chosen list. If a rule
+ * with this key already existed, its `id` and `createdAt` are reused, so a flip
+ * or edit keeps the watch cooldown (keyed on id) intact.
+ */
+export function upsertRule(type: RuleType, rule: Rule): void {
+  const key = ruleKey(rule);
+  const existing =
+    state.ignoreRules.find((r) => ruleKey(r) === key) ??
+    state.watchRules.find((r) => ruleKey(r) === key);
+  const finalRule: Rule = existing
+    ? { ...rule, id: existing.id, createdAt: existing.createdAt }
+    : rule;
 
-function ruleMatchesConsoleEntry(r: Rule, entry: Entry): boolean {
-  const message = entry.message;
-  if (r.pattern) return new RegExp(r.pattern.replace(/\*/g, '.*'), 'i').test(message);
-  return typeof r.messageContains === 'string' && message.toLowerCase().includes(r.messageContains);
+  state.ignoreRules = state.ignoreRules.filter((r) => ruleKey(r) !== key);
+  state.watchRules = state.watchRules.filter((r) => ruleKey(r) !== key);
+  if (type === 'ignore') state.ignoreRules = [...state.ignoreRules, finalRule];
+  else state.watchRules = [...state.watchRules, finalRule];
+
+  setIgnoreRules(state.ignoreRules);
+  setWatchRules(state.watchRules);
 }
 
 /**
- * Commit a built rule into state + storage. Kind is inferred from the entry
- * (network rules carry the status; console rules don't). For an *ignore* rule
- * we also strip any watch rule that matched the same entry, because watching
- * and ignoring the same thing is contradictory, so ignore wins.
+ * Commit a built rule into state + storage. The kind comes from the entry
+ * (network rules carry the status); dedup and ignore/watch moves are handled
+ * by upsertRule.
  */
 export function confirmRule(
   type: 'ignore' | 'watch',
@@ -117,44 +125,20 @@ export function confirmRule(
   pattern: string,
   note: string,
 ): void {
-  const trimmedNote = note.trim();
   const baseRule = {
     id: genRuleId(),
     pattern,
-    note: trimmedNote,
+    note: note.trim(),
     createdAt: Date.now(),
   };
   const rule: Rule =
-    entry.kind === 'network' && entry.status != null
-      ? { ...baseRule, kind: 'network', status: entry.status }
-      : entry.kind === 'network'
-        ? { ...baseRule, kind: 'network' }
-        : { ...baseRule, kind: 'console' };
+    entry.kind === 'network'
+      ? entry.status != null
+        ? { ...baseRule, kind: 'network', status: entry.status }
+        : { ...baseRule, kind: 'network' }
+      : { ...baseRule, kind: entry.kind };
 
-  if (type === 'ignore') {
-    state.ignoreRules = [...state.ignoreRules, rule];
-    setIgnoreRules(state.ignoreRules);
-
-    const filtered = state.watchRules.filter((r) => {
-      if (r.kind === 'network' && entry.kind === 'network') {
-        return !ruleMatchesNetworkEntry(r, entry);
-      }
-      if (
-        r.kind === 'console' &&
-        (entry.kind === 'console' || entry.kind === 'uncaught' || entry.kind === 'rejection')
-      ) {
-        return !ruleMatchesConsoleEntry(r, entry);
-      }
-      return true;
-    });
-    if (filtered.length !== state.watchRules.length) {
-      state.watchRules = filtered;
-      setWatchRules(state.watchRules);
-    }
-  } else {
-    state.watchRules = [...state.watchRules, rule];
-    setWatchRules(state.watchRules);
-  }
+  upsertRule(type, rule);
 }
 
 /** Open the editor for a given entry, seeding chips (network) or the pattern

@@ -3,9 +3,23 @@
 // reads of `state.ignoreRules` / `state.watchRules`; no mutation here.
 
 import { state } from '../state.js';
-import { globMatch, urlPath, urlPathAndSearch } from '../util.js';
+import { globMatch, urlPathAndSearch } from '../util.js';
 
 import type { Entry, Rule, InterceptorPayload } from '../../shared/types.js';
+
+/**
+ * Canonical identity of a rule: a string that is equal for two rules exactly
+ * when they match the same thing. The editor's save path uses it to dedup
+ * (remove any rule with this key, then add). Network rules key on the URL
+ * pattern plus status; the console-family kinds key on their message pattern.
+ * The kind prefix guarantees rules of different kinds never share a key.
+ */
+export function ruleKey(r: Rule): string {
+  if (r.kind === 'network') {
+    return 'network|' + (r.pattern ?? '') + '|' + String(r.status ?? '');
+  }
+  return r.kind + '|' + (r.pattern ?? '');
+}
 
 // Accept either a finished Entry or a fresh payload, so the same rules can be
 // applied before *and* after an event becomes an entry.
@@ -23,39 +37,23 @@ function entryStatus(e: MatchableEntry): number | null | undefined {
   return 'status' in e ? e.status : null;
 }
 
-// A network rule has two forms (see Rule in types.ts): a glob `pattern` against
-// the path+search, or an exact `urlPath`. Either way the status must match too.
+// A network rule matches a glob `pattern` against the URL path+search, with the
+// status matching too.
 function ruleMatchesNetwork(r: Rule, e: MatchableEntry): boolean {
-  if (r.pattern) {
-    return globMatch(r.pattern, urlPathAndSearch(entryUrl(e))) && r.status === entryStatus(e);
-  }
-  return urlPath(entryUrl(e)) === r.urlPath && r.status === entryStatus(e);
+  if (!r.pattern) return false;
+  return globMatch(r.pattern, urlPathAndSearch(entryUrl(e))) && r.status === entryStatus(e);
 }
 
-// A console rule is either a glob `pattern` over the whole message, or a
-// case-insensitive substring (`messageContains`, stored already-lowercased).
+// A console rule matches a glob `pattern` over the whole message.
 function ruleMatchesConsole(r: Rule, e: MatchableEntry): boolean {
-  if (r.pattern) return globMatch(r.pattern, entryMessage(e));
-  return (
-    typeof r.messageContains === 'string' &&
-    entryMessage(e).toLowerCase().includes(r.messageContains)
-  );
-}
-
-// Console rules apply to all three non-network kinds: an uncaught error or a
-// rejection is, for matching purposes, the same as a console error.
-function isConsoleKind(kind: string | undefined): boolean {
-  return kind === 'console' || kind === 'uncaught' || kind === 'rejection';
+  return r.pattern ? globMatch(r.pattern, entryMessage(e)) : false;
 }
 
 /** True if any ignore rule matches (caller drops the entry). */
 export function matchesIgnoreRule(e: MatchableEntry): boolean {
   for (const r of state.ignoreRules) {
-    if (r.kind === 'network' && e.kind === 'network') {
-      if (ruleMatchesNetwork(r, e)) return true;
-    } else if (r.kind === 'console' && isConsoleKind(e.kind)) {
-      if (ruleMatchesConsole(r, e)) return true;
-    }
+    if (r.kind !== e.kind) continue;
+    if (r.kind === 'network' ? ruleMatchesNetwork(r, e) : ruleMatchesConsole(r, e)) return true;
   }
   return false;
 }
@@ -63,11 +61,8 @@ export function matchesIgnoreRule(e: MatchableEntry): boolean {
 /** Return the first matching watch rule (needed for its id/cooldown), or null. */
 export function findWatchRule(e: MatchableEntry): Rule | null {
   for (const r of state.watchRules) {
-    if (r.kind === 'network' && e.kind === 'network') {
-      if (ruleMatchesNetwork(r, e)) return r;
-    } else if (r.kind === 'console' && isConsoleKind(e.kind)) {
-      if (ruleMatchesConsole(r, e)) return r;
-    }
+    if (r.kind !== e.kind) continue;
+    if (r.kind === 'network' ? ruleMatchesNetwork(r, e) : ruleMatchesConsole(r, e)) return r;
   }
   return null;
 }
