@@ -2,7 +2,7 @@
 
 This is the human-driven verification pass before the repo flips to public
 visibility. Walk through it once after a successful `npm run build`. Each check
-should take 1–3 minutes; the whole pass is about 30–45 minutes.
+should take 1–3 minutes; the whole pass is about 45–60 minutes.
 
 The harness mechanics (what buttons fire what events) live in
 [`README.md`](./README.md). This file is the launch checklist: what behaviour
@@ -56,6 +56,36 @@ Walk the **Suggested checklist** in [`README.md`](./README.md):
       appears with the rule's note (if any) and dismisses correctly
 - [ ] **Ignore rule**: create an Ignore rule, fire the matching button, no
       entry appears
+- [ ] **Per-kind rules**: make an Ignore rule from a console error, then fire
+      the uncaught and rejection buttons with a matching message; confirm they
+      are NOT ignored (a console rule no longer covers uncaught/rejection)
+- [ ] **Editor, entry mode**: click Ignore on a network entry; the kind badge
+      reads "Failed request", path/query chips render, wildcarding a segment
+      updates the Pattern preview, and the Ignore/Watch toggle is present
+- [ ] **Ignore/Watch flip**: create a Watch rule, then click Ignore on the same
+      entry; the editor opens on **Watch** (not Ignore), the Ignore option
+      blinks, and the caption reads "Already a watch rule. Tap Ignore to move
+      it."; flip to Ignore and Save; the rule moves (gone from Watch, now in
+      Ignore) with no duplicate
+- [ ] **Re-open same type**: click Watch on an already-watched entry; the editor
+      opens on Watch with NO blink and the caption "Already a watch rule;
+      editing it."
+- [ ] **Dedup**: create the identical rule twice; Settings → Rules shows one row
+- [ ] **Panel bell**: a watched entry's bell is orange ("Edit watch rule") and
+      opens the existing rule (read-only pattern + Delete button); a non-watched
+      entry's bell is grey ("Watch this error") and opens entry mode to create one
+- [ ] **Modal bell**: open a watched entry's detail modal, its watch bell is
+      orange; create or delete that watch rule from the modal and the bell
+      updates without reopening the modal
+- [ ] **Settings, Edit rule**: each rule row shows a per-kind icon and an "Edit
+      rule" button; it opens the rule (read-only pattern, note prefilled, Delete);
+      editing the note and Save persists; Delete removes the rule
+- [ ] **Toast Rule button**: fire a watch-matched event; the toast shows
+      View / Rule / ×; clicking **Rule** opens the matching rule and dismisses
+      the toast
+- [ ] **Relative-URL rule**: in DevTools run `fetch("api/does-not-exist")`,
+      create a Watch rule from the captured entry, then re-run the same fetch;
+      the bell goes orange and the toast fires (relative URLs match)
 - [ ] **Burst**: clicking the burst button adds 10 entries; badge counter
       and scrolling work
 - [ ] **Clear**: the Clear button empties the list

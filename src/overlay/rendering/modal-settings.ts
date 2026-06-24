@@ -3,20 +3,18 @@
 // enable list). Rendering reads from `state`; the actual toggle handlers live
 // in index.ts (change events) and actions.ts (button clicks).
 
-import { CIRCLE_X, GLOBE, STICKY_NOTE } from '../constants.js';
+import { STICKY_NOTE } from '../constants.js';
 import { currentSite, state } from '../state.js';
-import { escAttr, escHtml, linkifyHtml, siteLabel } from '../util.js';
+import { escAttr, escHtml, linkifyHtml, ruleKindIcon, siteLabel } from '../util.js';
 
 import type { Rule, Settings } from '../../shared/types.js';
 
 type RuleListType = 'ignore' | 'watch';
 
-/** Render one rule row for the ignore/watch lists. Two modes: a normal row
- *  (description + note + edit/delete) or, when this rule is being edited
- *  (state.editingRuleId), an inline note textarea with save/cancel. The
- *  ignore/watch split changes only the delete action name and data-attr. */
+/** Render one rule row for the ignore/watch lists: a per-kind icon, the pattern
+ *  description, an optional note badge, then Edit rule / Delete. The ignore/watch
+ *  split changes only the delete action name and data-attr. */
 function renderRuleRow(r: Rule, listType: RuleListType): string {
-  const icon = r.kind === 'network' ? GLOBE : CIRCLE_X;
   const iconCls = listType === 'watch' ? 'watch' : r.kind === 'network' ? 'net' : 'cons';
   const desc =
     r.kind === 'network'
@@ -25,47 +23,10 @@ function renderRuleRow(r: Rule, listType: RuleListType): string {
   const delAction = listType === 'ignore' ? 'del-ignore-rule' : 'del-watch-rule';
   const delAttr = listType === 'ignore' ? 'data-rule-id' : 'data-watch-rule-id';
   const note = r.note ?? '';
-  const isEditing = state.editingRuleId === r.id;
-
-  if (isEditing) {
-    return (
-      '<div class="srule-row srule-editing" data-rule-row-id="' +
-      escAttr(r.id) +
-      '">' +
-      '<div class="srule-line">' +
-      '<span class="srule-icon ' +
-      iconCls +
-      '">' +
-      icon +
-      '</span>' +
-      '<span class="srule-desc" title="' +
-      escAttr(desc) +
-      '">' +
-      escHtml(desc) +
-      '</span>' +
-      '</div>' +
-      '<textarea class="srule-note-ta" data-rule-note-ta="' +
-      escAttr(r.id) +
-      '" rows="2" placeholder="Add a note (links to a fix PR, ticket, etc.)">' +
-      escHtml(note) +
-      '</textarea>' +
-      '<div class="srule-edit-actions">' +
-      '<button class="pbtn" data-action="save-rule-note" data-rule-id="' +
-      escAttr(r.id) +
-      '" data-rule-list="' +
-      listType +
-      '">Save</button>' +
-      '<button class="pbtn" data-action="cancel-rule-note">Cancel</button>' +
-      '</div>' +
-      '</div>'
-    );
-  }
-
   const noteHtml = note ? '<div class="srule-note">' + linkifyHtml(note) + '</div>' : '';
   const noteBadge = note
     ? '<span class="srule-note-badge" title="Has a note">' + STICKY_NOTE + '</span>'
     : '';
-  const editLabel = note ? 'Edit note' : 'Add note';
 
   return (
     '<div class="srule-row" data-rule-row-id="' +
@@ -75,7 +36,7 @@ function renderRuleRow(r: Rule, listType: RuleListType): string {
     '<span class="srule-icon ' +
     iconCls +
     '">' +
-    icon +
+    ruleKindIcon(r.kind) +
     '</span>' +
     '<span class="srule-desc" title="' +
     escAttr(desc) +
@@ -83,13 +44,11 @@ function renderRuleRow(r: Rule, listType: RuleListType): string {
     escHtml(desc) +
     '</span>' +
     noteBadge +
-    '<button class="pbtn srule-edit" data-action="edit-rule-note" data-rule-id="' +
+    '<button class="pbtn srule-edit" data-action="edit-rule" data-rule-id="' +
     escAttr(r.id) +
     '" data-rule-list="' +
     listType +
-    '">' +
-    editLabel +
-    '</button>' +
+    '">Edit rule</button>' +
     '<button class="pbtn srule-del" data-action="' +
     delAction +
     '" ' +
@@ -205,9 +164,8 @@ export function showSettingsModal(): void {
   state.settingsModalEl.style.display = '';
 }
 
-/** Close the modal and abandon any in-progress note edit. */
+/** Close the setting modal. */
 export function hideSettingsModal(): void {
   if (!state.settingsModalEl) return;
   state.settingsModalEl.style.display = 'none';
-  state.editingRuleId = null;
 }

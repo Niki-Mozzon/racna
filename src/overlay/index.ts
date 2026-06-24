@@ -532,9 +532,15 @@ function buildUI(): void {
     '<div class="modal reeditor">' +
     '<div class="modal-header">' +
     '<span class="modal-title re-title"></span>' +
+    '<span class="re-kind-badge" id="re-kind-badge"></span>' +
     '<button class="pbtn pbtn-close" data-action="close-rule-editor">×</button>' +
     '</div>' +
     '<div class="modal-body re-body">' +
+    '<div class="re-type-toggle">' +
+    '<button class="pbtn re-type-opt" data-action="set-rule-editor-type" data-rule-type="ignore">Ignore</button>' +
+    '<button class="pbtn re-type-opt" data-action="set-rule-editor-type" data-rule-type="watch">Watch</button>' +
+    '</div>' +
+    '<div class="re-conflict" id="re-conflict" style="display:none"></div>' +
     '<div class="re-net-section" style="display:none">' +
     '<div class="re-meta-row"></div>' +
     '<div class="re-chips-label">Path segments: click to wildcard</div>' +
@@ -554,6 +560,7 @@ function buildUI(): void {
     '<div class="re-footer">' +
     '<button class="pbtn re-btn-ignore" data-action="confirm-rule">Create Rule</button>' +
     '<button class="pbtn" data-action="close-rule-editor">Cancel</button>' +
+    '<button class="pbtn re-btn-delete" id="re-delete-btn" data-action="delete-rule" style="display:none">Delete</button>' +
     '</div>' +
     '</div>';
   state.ruleEditorEl = ruleEditorEl;

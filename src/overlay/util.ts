@@ -3,7 +3,7 @@
 
 import { CIRCLE_X, GLOBE, OCTAGON_X, UNPLUG, WARN_ICON } from './constants.js';
 
-import type { Entry } from '../shared/types.js';
+import type { Entry, RuleKind } from '../shared/types.js';
 
 /** Human-friendly label for a per-site enable key. Hostnames display as-is; the
  *  hostless `file://` key (see currentSite in state.ts) reads better as
@@ -12,10 +12,16 @@ export function siteLabel(site: string): string {
   return site === 'file://' ? 'Local files' : site;
 }
 
+// Relative URLs (e.g. a schemeless `fetch("api/x")`) are stored as-passed by the
+// interceptor. Resolve against a dummy base so they yield a rooted path
+// (`/api/x`), matching what the rule editor's buildEditorPattern produces, so
+// rule matching and display stay consistent. An absolute URL ignores the base.
+export const URL_BASE = 'http://localhost';
+
 /** Path portion of a URL, or the raw string if it doesn't parse as a URL. */
 export function urlPath(url: string): string {
   try {
-    return new URL(url).pathname;
+    return new URL(url, URL_BASE).pathname;
   } catch {
     return url;
   }
@@ -23,7 +29,7 @@ export function urlPath(url: string): string {
 
 export function urlPathAndSearch(url: string): string {
   try {
-    const u = new URL(url);
+    const u = new URL(url, URL_BASE);
     return u.pathname + u.search;
   } catch {
     return url;
@@ -163,6 +169,24 @@ export function entryIcon(e: Entry): string {
   if (e.kind === 'uncaught') return OCTAGON_X;
   if (e.level === 'warn') return WARN_ICON;
   return CIRCLE_X;
+}
+
+/** Icon for a rule's kind, reusing the entry glyphs so a rule visually mirrors
+ *  the events it matches. (entryIcon needs a full Entry for the warn glyph;
+ *  rules carry no level, so a console rule always uses the error icon.) */
+export function ruleKindIcon(kind: RuleKind): string {
+  if (kind === 'network') return GLOBE;
+  if (kind === 'uncaught') return OCTAGON_X;
+  if (kind === 'rejection') return UNPLUG;
+  return CIRCLE_X;
+}
+
+/** Short label for a rule's kind, shown in the editor's read-only kind badge. */
+export function ruleKindLabel(kind: RuleKind) {
+  if (kind === 'network') return 'Failed request';
+  if (kind === 'uncaught') return 'Uncaught error';
+  if (kind === 'rejection') return 'Rejection';
+  return 'Console';
 }
 
 export function entryTooltip(e: Entry): string {

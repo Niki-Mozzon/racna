@@ -57,6 +57,7 @@ export function showToast(e: Entry): void {
     '</div>' +
     '<div class="toast-actions">' +
     '<button class="pbtn" data-action="view-toast">View</button>' +
+    '<button class="pbtn" data-action="edit-rule-from-toast">Rule</button>' +
     '<button class="pbtn pbtn-close" data-action="dismiss-toast">×</button>' +
     '</div>' +
     '</div>';

@@ -248,7 +248,7 @@ export function renderEntry(e: Entry): string {
     '" data-action="watch" data-id="' +
     String(e.id) +
     '" title="' +
-    (isWatched ? 'Already watching' : 'Watch this error') +
+    (isWatched ? 'Edit watch rule' : 'Watch this error') +
     '">' +
     BELL +
     '</button>';

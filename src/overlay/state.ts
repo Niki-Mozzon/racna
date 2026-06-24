@@ -130,8 +130,7 @@ export interface OverlayState {
   ruleEditorSegments: EditorSegment[];
   ruleEditorConsolePattern: string;
   ruleEditorRule: Rule | null; // existing rule being edited (rule mode), or the conflict match
-  ruleEditorPattern: string; // read-only pattern shown in the rule mode
-  editingRuleId: string | null; // non-null when editing an existing rule vs creating
+  ruleEditorBlink: boolean; // true when opened on a conflict, to hint the toggle
 }
 
 // The live singleton. Initial values are pre-bootstrap placeholders; index.ts
@@ -179,6 +178,5 @@ export const state: OverlayState = {
   ruleEditorSegments: [],
   ruleEditorConsolePattern: '',
   ruleEditorRule: null,
-  ruleEditorPattern: '',
-  editingRuleId: null,
+  ruleEditorBlink: false,
 };

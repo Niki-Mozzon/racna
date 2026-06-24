@@ -1,5 +1,6 @@
 import { BODY_MAX } from '../../shared/protocol.js';
 import { getIconImg } from '../constants.js';
+import { matchesWatchRule } from '../rules/matching.js';
 import { state } from '../state.js';
 import { setCollapsedFields } from '../storage.js';
 import { escAttr, escHtml, formatTime, statusClass, truncate } from '../util.js';
@@ -201,6 +202,17 @@ export function refreshModalBody(): void {
 
 /** Open the detail modal for an entry. The Replay button only appears when the
  *  entry has a storeId (network rows have none; nothing to re-log). */
+/** Re-sync the detail modal's watch button to the current entry's watched state,
+ *  so an open modal does not show a stale bell after a rule is created or deleted. */
+export function refreshModalWatchButton(): void {
+  if (!state.modalEl || !state.currentModalEntry) return;
+  const watchBtn = state.modalEl.querySelector<HTMLButtonElement>('[data-action="watch-modal"]');
+  if (!watchBtn) return;
+  const watched = matchesWatchRule(state.currentModalEntry);
+  watchBtn.classList.toggle('watching', watched);
+  watchBtn.title = watched ? 'Edit watch rule' : 'Watch';
+}
+
 export function showModal(e: Entry): void {
   if (!state.modalEl || !state.modalBodyEl) return;
   state.currentModalEntry = e;
@@ -233,6 +245,7 @@ export function showModal(e: Entry): void {
     replayBtn.style.display = e.storeId != null ? '' : 'none';
     replayBtn.setAttribute('data-store-id', e.storeId != null ? String(e.storeId) : '');
   }
+  refreshModalWatchButton();
   state.modalBodyEl.innerHTML = buildModalHtml(e);
   const aiToggle = state.modalEl.querySelector<HTMLInputElement>('#ai-format');
   if (aiToggle) aiToggle.checked = state.settings.aiFormat;

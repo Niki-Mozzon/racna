@@ -1,7 +1,12 @@
 import { REPLAY_TYPE } from '../shared/protocol.js';
 
 import { resumeCapture } from './rendering/flood-banner.js';
-import { hideModal, showModal, buildModalText } from './rendering/modal-detail.js';
+import {
+  hideModal,
+  showModal,
+  buildModalText,
+  refreshModalWatchButton,
+} from './rendering/modal-detail.js';
 import {
   hideSettingsModal,
   renderSettingsModal,
@@ -9,10 +14,29 @@ import {
 } from './rendering/modal-settings.js';
 import { renderBadge, renderList } from './rendering/panel.js';
 import { dismissToast, setToastActionHandler } from './rendering/toast.js';
-import { buildEditorPattern, confirmRule, hideRuleEditor, showRuleEditor } from './rules/editor.js';
+import {
+  confirmRuleEditor,
+  deleteRuleFromEditor,
+  hideRuleEditor,
+  setRuleEditorType,
+  showRuleEditor,
+  showRuleEditorForRule,
+} from './rules/editor.js';
+import { findWatchRule } from './rules/matching.js';
 import { state } from './state.js';
 import { setIgnoreRules, setWatchRules, setEnabledSites } from './storage.js';
 import { feedback } from './util.js';
+
+import type { Entry } from '../shared/types.js';
+
+/** Open the watch editor for an entry: rule mode on the existing rule if it is
+ *  already watched (orange bell, modal, or toast), else entry mode to create one. */
+function openWatchEditor(e: Entry | null): void {
+  if (!e) return;
+  const watched = findWatchRule(e);
+  if (watched) showRuleEditorForRule(watched, 'watch');
+  else showRuleEditor('watch', e);
+}
 
 /**
  * Central command dispatcher. The whole UI uses event delegation: clickable
@@ -72,12 +96,11 @@ export function handleAction(btn: HTMLElement): void {
     case 'watch': {
       const idAttr = btn.getAttribute('data-id');
       const id = idAttr ? parseInt(idAttr, 10) : NaN;
-      const e = state.entries.find((x) => x.id === id);
-      if (e) showRuleEditor('watch', e);
+      openWatchEditor(state.entries.find((x) => x.id === id) ?? null);
       return;
     }
     case 'watch-modal':
-      if (state.currentModalEntry) showRuleEditor('watch', state.currentModalEntry);
+      openWatchEditor(state.currentModalEntry);
       return;
     case 'view-toast': {
       if (state.toastEntry) {
@@ -114,46 +137,7 @@ export function handleAction(btn: HTMLElement): void {
       setWatchRules(state.watchRules);
       renderList();
       renderSettingsModal();
-      return;
-    }
-    case 'edit-rule-note': {
-      state.editingRuleId = btn.getAttribute('data-rule-id');
-      renderSettingsModal();
-      if (state.settingsModalEl && state.editingRuleId) {
-        const ta = state.settingsModalEl.querySelector<HTMLTextAreaElement>(
-          'textarea[data-rule-note-ta="' + state.editingRuleId + '"]',
-        );
-        if (ta) {
-          ta.focus();
-          ta.setSelectionRange(ta.value.length, ta.value.length);
-        }
-      }
-      return;
-    }
-    case 'cancel-rule-note':
-      state.editingRuleId = null;
-      renderSettingsModal();
-      return;
-    case 'save-rule-note': {
-      const ruleId = btn.getAttribute('data-rule-id');
-      const listType = btn.getAttribute('data-rule-list');
-      const ta = state.settingsModalEl?.querySelector<HTMLTextAreaElement>(
-        'textarea[data-rule-note-ta="' + (ruleId ?? '') + '"]',
-      );
-      const newNote = ta ? ta.value.trim() : '';
-      if (listType === 'ignore') {
-        state.ignoreRules = state.ignoreRules.map((r) =>
-          r.id === ruleId ? { ...r, note: newNote } : r,
-        );
-        setIgnoreRules(state.ignoreRules);
-      } else {
-        state.watchRules = state.watchRules.map((r) =>
-          r.id === ruleId ? { ...r, note: newNote } : r,
-        );
-        setWatchRules(state.watchRules);
-      }
-      state.editingRuleId = null;
-      renderSettingsModal();
+      refreshModalWatchButton();
       return;
     }
     case 'del-site': {
@@ -168,26 +152,40 @@ export function handleAction(btn: HTMLElement): void {
       hideRuleEditor();
       return;
     case 'confirm-rule': {
-      if (!state.ruleEditorEntry || !state.ruleEditorEl) return;
-      let pattern: string;
-      if (state.ruleEditorEntry.kind === 'network') {
-        pattern = buildEditorPattern(state.ruleEditorEntry, state.ruleEditorSegments);
-      } else {
-        const ta = state.ruleEditorEl.querySelector<HTMLTextAreaElement>('#re-console-ta');
-        pattern = (ta ? ta.value : state.ruleEditorConsolePattern).trim();
+      if (confirmRuleEditor()) {
+        renderList();
+        renderBadge();
+        renderSettingsModal();
+        refreshModalWatchButton();
       }
-      if (!pattern) return;
-      const noteTa = state.ruleEditorEl.querySelector<HTMLTextAreaElement>('#re-note-ta');
-      const note = noteTa ? noteTa.value : '';
-      const rType = state.ruleEditorType;
-      const rEntry = state.ruleEditorEntry;
-      if (rType === '') return;
-      hideRuleEditor();
-      confirmRule(rType, rEntry, pattern, note);
-      renderList();
-      renderBadge();
       return;
     }
+    case 'set-rule-editor-type': {
+      const t = btn.getAttribute('data-rule-type');
+      if (t === 'ignore' || t === 'watch') setRuleEditorType(t);
+      return;
+    }
+    case 'edit-rule': {
+      const ruleId = btn.getAttribute('data-rule-id');
+      const listType = btn.getAttribute('data-rule-list');
+      if (listType !== 'ignore' && listType !== 'watch') return;
+      const list = listType === 'ignore' ? state.ignoreRules : state.watchRules;
+      const rule = list.find((r) => r.id === ruleId);
+      if (rule) showRuleEditorForRule(rule, listType);
+      return;
+    }
+    case 'delete-rule': {
+      deleteRuleFromEditor();
+      renderList();
+      renderBadge();
+      renderSettingsModal();
+      refreshModalWatchButton();
+      return;
+    }
+    case 'edit-rule-from-toast':
+      openWatchEditor(state.toastEntry);
+      dismissToast();
+      return;
     default:
       return;
   }

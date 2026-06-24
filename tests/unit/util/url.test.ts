@@ -15,8 +15,9 @@ describe('urlPath', () => {
     expect(urlPath('https://example.com/path?q=1#hash')).toBe('/path');
   });
 
-  it('returns input verbatim when not parseable', () => {
-    expect(urlPath('not-a-url')).toBe('not-a-url');
+  it('resolves a relative URL to a rooted path', () => {
+    expect(urlPath('not-a-url')).toBe('/not-a-url');
+    expect(urlPath('www.awdawd.com/test/triple')).toBe('/www.awdawd.com/test/triple');
   });
 });
 
@@ -29,8 +30,11 @@ describe('urlPathAndSearch', () => {
     expect(urlPathAndSearch('https://example.com/p?a=b#hash')).toBe('/p?a=b');
   });
 
-  it('returns input verbatim when not parseable', () => {
-    expect(urlPathAndSearch('not-a-url')).toBe('not-a-url');
+  it('resolves a relative URL to a rooted path (matches buildEditorPattern)', () => {
+    expect(urlPathAndSearch('not-a-url')).toBe('/not-a-url');
+    expect(urlPathAndSearch('www.awdawd.com/test/triple-test')).toBe(
+      '/www.awdawd.com/test/triple-test',
+    );
   });
 });
 
