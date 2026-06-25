@@ -44,9 +44,10 @@ Racna requests two permissions:
 
 - **`storage`** persists your settings and rules via `chrome.storage.sync`.
   Nothing is sent over the network.
-- **`<all_urls>`** lets the content scripts load, but they only run on pages
-  where you explicitly enable the per-site toggle. By default, only `localhost`
-  and `127.0.0.1` are enabled.
+- **`<all_urls>`** lets the content scripts load on pages broadly. Racna only
+  captures, stores, or shows anything on pages where you enable the per-site
+  toggle, and nothing is ever sent over the network. By default, only
+  `localhost` and `127.0.0.1` are enabled.
 
 ## Privacy
 

@@ -165,7 +165,8 @@
       </ul>
       <p>
         Racna is off by default everywhere except <code>localhost</code> and <code>127.0.0.1</code>.
-        It only observes a site after you switch it on for that site.
+        On any site you have not switched on, it keeps nothing, shows nothing, and sends nothing;
+        you enable it per site to start capturing.
       </p>
 
       <h2>What leaves your browser</h2>
@@ -194,8 +195,9 @@
         any AI service, does not send captured data to one, and has no network access of its own.
         Separately, the "Hide sensitive headers" setting (on by default) masks credential headers
         such as <code>Authorization</code> and <code>Cookie</code> in all copied and exported text,
-        whichever format you use. Request and response bodies are not scanned, so review what you
-        copy before sharing it.
+        whichever format you use. Request and response bodies, and full URLs (which can carry tokens
+        in their query string or fragment), are not scanned or redacted, so review what you copy
+        before sharing it.
       </p>
 
       <h2>Permissions and why</h2>
@@ -206,9 +208,10 @@
         </li>
         <li>
           The content scripts are declared with <code>&lt;all_urls&gt;</code> so that the per-site
-          toggle can work on any site you choose. The scripts load broadly but stay inactive until
-          you enable Racna on a site. No host permission grants Racna data access beyond the page
-          you turned it on for.
+          toggle can work on any site you choose. The scripts load on pages broadly, but until you
+          enable Racna for a site it keeps and shows nothing from that site, and it sends nothing
+          anywhere on any site. No host permission grants Racna data access beyond the page you
+          turned it on for.
         </li>
         <li>
           <code>web_accessible_resources</code> exposes only the extension's icon images, so the
