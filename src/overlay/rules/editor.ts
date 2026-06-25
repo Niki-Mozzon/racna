@@ -272,6 +272,19 @@ export function hideRuleEditor(): void {
   state.ruleEditorBlink = false;
 }
 
+/** The status chip shown in the editor's network meta-row, reused by both the
+ *  entry branch and the edit-existing-rule branch so the two never drift.
+ *  "ERR" stands in for status 0 (a request that never completed). */
+function statusChipHtml(status: number | null | undefined): string {
+  return (
+    '<span class="re-meta-status ' +
+    statusClass(status) +
+    '">' +
+    (status === 0 ? 'ERR' : String(status)) +
+    '</span>'
+  );
+}
+
 /** Paint the editor from current state: the network branch renders path/query
  *  chips and a live pattern preview; the console branch shows the editable
  *  pattern textarea. Method and status are fixed (shown but not editable) for
@@ -326,8 +339,27 @@ export function renderRuleEditor(): void {
   if (deleteBtn) deleteBtn.style.display = ruleMode ? '' : 'none';
 
   if (!e) {
-    netSection.style.display = 'none';
     conSection.style.display = 'none';
+    const r = state.ruleEditorRule;
+    if (r?.kind === 'network' && r.status != null) {
+      // Editing an existing network rule: show its status the same way entry
+      // mode does (the colored chip). There are no URL segments to wildcard
+      // here, so collapse the network section to just the meta-row and hide the
+      // chip-editing UI. Toggling every direct child (rather than a fixed
+      // selector) stays correct if the section gains rows later.
+      netSection.style.display = '';
+      netSection.querySelectorAll<HTMLElement>(':scope > *').forEach((c) => {
+        c.style.display = c.classList.contains('re-meta-row') ? '' : 'none';
+      });
+      const metaRow = netSection.querySelector('.re-meta-row');
+      if (metaRow) {
+        // Status chip only: in rule mode nothing in this section is editable,
+        // so the entry-mode "fixed" hint would have nothing to contrast against.
+        metaRow.innerHTML = statusChipHtml(r.status);
+      }
+    } else {
+      netSection.style.display = 'none';
+    }
     previewEl.textContent = state.ruleEditorRule?.pattern ?? '(empty)';
     return;
   }
@@ -335,6 +367,11 @@ export function renderRuleEditor(): void {
   if (e.kind === 'network') {
     netSection.style.display = '';
     conSection.style.display = 'none';
+    // Undo any per-child hiding a prior edit-existing-rule render applied (the
+    // editor element is reused across opens), so the chip UI reappears here.
+    netSection.querySelectorAll<HTMLElement>(':scope > *').forEach((c) => {
+      c.style.display = '';
+    });
 
     const metaRow = netSection.querySelector('.re-meta-row');
     if (metaRow) {
@@ -342,11 +379,7 @@ export function renderRuleEditor(): void {
         '<span class="re-meta-method">' +
         escHtml(e.method ?? 'REQ') +
         '</span>' +
-        '<span class="re-meta-status ' +
-        statusClass(e.status) +
-        '">' +
-        (e.status === 0 ? 'ERR' : String(e.status)) +
-        '</span>' +
+        statusChipHtml(e.status) +
         '<span class="re-meta-hint">(method &amp; status are fixed)</span>';
     }
 
