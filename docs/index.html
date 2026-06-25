@@ -217,8 +217,31 @@
         color: var(--muted);
         font-size: 13px;
         text-align: center;
-        padding: 12px;
+        padding: 0;
+        overflow: hidden;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .copy-sample {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 240px;
+        overflow-y: auto;
+        font-size: 12px;
+      }
+      .step .copy-label {
+        margin: 14px 0 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--accent);
       }
       .shot-kicker {
         font-size: 10px;
@@ -365,15 +388,13 @@
           <div>
             <h3><span class="step-num">1</span>Enable it where you work</h3>
             <p>
-              Racna stays dormant until you switch it on for a site from the toolbar popup. Out of
-              the box only <code>localhost</code> and <code>127.0.0.1</code> are enabled, so your
-              everyday browsing is untouched.
+              Racna stays out of the way until you switch it on for a site from the toolbar popup.
+              Out of the box only <code>localhost</code> and <code>127.0.0.1</code> are enabled, so
+              your everyday browsing is untouched.
             </p>
           </div>
-          <!-- TODO Step 7: replace placeholders with real screenshots -->
           <figure class="shot">
-            <span class="shot-kicker">screenshot</span>
-            <span>The popup with the per-site toggle</span>
+            <img src="shots/popup-toggle.png" alt="The popup with the per-site toggle" />
           </figure>
         </div>
 
@@ -387,8 +408,7 @@
             </p>
           </div>
           <figure class="shot">
-            <span class="shot-kicker">screenshot</span>
-            <span>The overlay panel with an expanded entry</span>
+            <img src="shots/panel-expanded.png" alt="The overlay panel with an expanded entry" />
           </figure>
         </div>
 
@@ -401,10 +421,49 @@
               choice: error first, fenced sections, a breadcrumb timeline, and credential headers
               masked. Copy All exports the lot at once.
             </p>
+            <p>That same failed request, copied both ways:</p>
+            <p class="copy-label">Default Markdown</p>
+            <pre class="copy-sample"><code>PAGE: http://localhost:8000/
+
+BREADCRUMBS:
+15:04:07  CLICK  button.net "XHR GET httpbin.org/status/500"
+15:04:07  HTTP   GET https://httpbin.org/status/500 → 0 (115 ms)
+
+REQUEST: GET https://httpbin.org/status/500
+
+RESPONSE: Network Error Network Error (115 ms)
+
+CALL STACK:
+Error
+    at XMLHttpRequest.send (chrome-extension://nnhhmjniggmgoabcnmaafkfifiinimnp/interceptor.js:297:24)
+    at fireXhr500 (http://localhost:8000/:640:11)
+    at HTMLButtonElement.onclick (http://localhost:8000/:391:56)</code></pre>
+            <p class="copy-label">AI format</p>
+            <pre class="copy-sample"><code>REQUEST: GET https://httpbin.org/status/500
+
+RESPONSE: Network Error Network Error (115 ms)
+
+CALL STACK:
+```
+Error
+    at XMLHttpRequest.send (chrome-extension://nnhhmjniggmgoabcnmaafkfifiinimnp/interceptor.js:297:24)
+    at fireXhr500 (http://localhost:8000/:640:11)
+    at HTMLButtonElement.onclick (http://localhost:8000/:391:56)
+```
+
+TIMELINE (oldest first, ends at this failure):
+```
+15:04:07  CLICK  button.net "XHR GET httpbin.org/status/500"
+15:04:07  HTTP   GET https://httpbin.org/status/500 → 0 (115 ms)
+15:04:07  FAIL   this entry (see above)
+```
+PAGE: http://localhost:8000/</code></pre>
           </div>
           <figure class="shot">
-            <span class="shot-kicker">screenshot</span>
-            <span>The copy controls and the AI-formatted output</span>
+            <img
+              src="shots/copy-ai-format.png"
+              alt="The copy controls with the AI format switch on"
+            />
           </figure>
         </div>
 
@@ -418,8 +477,7 @@
             </p>
           </div>
           <figure class="shot">
-            <span class="shot-kicker">screenshot</span>
-            <span>A watch rule firing as a toast</span>
+            <img src="shots/watch-toast.png" alt="A watch rule firing as a toast" />
           </figure>
         </div>
 
@@ -432,8 +490,7 @@
             </p>
           </div>
           <figure class="shot">
-            <span class="shot-kicker">screenshot</span>
-            <span>Selection mode with the export action</span>
+            <img src="shots/export-selection.png" alt="Selection mode with the export action" />
           </figure>
         </div>
       </section>
