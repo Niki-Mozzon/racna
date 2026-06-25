@@ -61,7 +61,12 @@ After every change to `src/overlay/` or `src/interceptor/`, walk through:
 4. **Network (fetch)**: status, method, URL, and `(N ms)` duration are all
    visible. POST should preserve the request body in the modal.
 5. **Network, slow + abort**: wait about 3 s, then confirm the resulting
-   **Network Error** entry has a duration around 3000 ms.
+   **Network Error** entry has a duration around 3000 ms. This only works while
+   `httpbin.org` actually holds the connection open for the delay. When httpbin
+   is degraded it fast-fails the request as a status-0 error in ~100 ms, the
+   abort never fires, and you see a short duration instead. A short reading here
+   means httpbin misbehaved, not that capture is broken; re-run when it is
+   healthy (or point the button at a local slow endpoint).
 6. **Breadcrumbs**: open the modal for any breadcrumb-scenario entry. The
    Breadcrumbs section should show the preceding activity tagged with type.
 7. **Watch**: create a Watch rule (eye icon on the entry, or via
@@ -85,6 +90,14 @@ Some buttons hit `https://httpbin.org/...` to exercise real cross-origin network
 paths and remote server errors. If you're offline or behind a strict proxy
 those buttons will fail, but the failures themselves are useful: you get a
 network-error entry instead of a 500, which exercises the same code path.
+
+The one exception is **slow + abort** (`GET httpbin.org/delay/10`, fetch and
+XHR). Its point is to verify a large `duration` reading from a request that
+stays pending until the abort fires. A network error there does **not** stand
+in for that: if httpbin is unreachable or degraded the request dies in ~100 ms
+before the abort, so the ~3000 ms assertion goes unverified. Treat that button
+as needing a healthy httpbin (or a local slow endpoint), not as covered by the
+"same code path" note above.
 
 The buttons that don't need external network:
 
