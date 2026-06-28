@@ -29,7 +29,7 @@ without opening anything else.
 
 ### Production (Chrome / Edge stores)
 
-Coming soon. Not yet listed on the Chrome Web Store or Edge Add-ons.
+Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/racna/ndnmoojoigohopagkggbjmdinlambgfg). Edge Add-ons is coming soon.
 
 ### Development / Unpacked
 
