@@ -24,6 +24,11 @@
       * {
         box-sizing: border-box;
       }
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+      }
       body {
         margin: 0;
         padding: 0;
@@ -141,6 +146,17 @@
       .feature:hover {
         border-color: rgba(185, 133, 255, 0.45);
       }
+      /* Feature chips are links to the walkthrough step that covers them; keep
+         them looking like cards, not text links. */
+      a.feature {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+      }
+      a.feature:hover {
+        color: inherit;
+        text-decoration: none;
+      }
       .feature h3 {
         margin: 0 0 6px;
         font-size: 14px;
@@ -168,6 +184,7 @@
         gap: 24px;
         align-items: center;
         padding: 22px 0;
+        scroll-margin-top: 16px;
       }
       .step + .step {
         border-top: 1px solid var(--border);
@@ -226,14 +243,70 @@
         height: 100%;
         object-fit: cover;
         display: block;
+        cursor: zoom-in;
+      }
+
+      /* Lightbox: click any screenshot to view it full size */
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(10, 10, 14, 0.86);
+        backdrop-filter: blur(3px);
+        cursor: zoom-out;
+      }
+      .lightbox.open {
+        display: flex;
+      }
+      .lightbox img {
+        max-width: 100%;
+        max-height: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+      }
+      .lightbox-close {
+        position: fixed;
+        top: 18px;
+        right: 22px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--btn-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .lightbox-close:hover {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+      }
+      /* Stack both copy samples in one grid cell so the block always reserves
+         the height of the taller format; toggling just flips which is visible,
+         so the box never resizes or scrolls. */
+      .copy-stack {
+        display: grid;
+      }
+      .copy-stack > .copy-sample {
+        grid-area: 1 / 1;
       }
       .copy-sample {
         margin: 0;
         white-space: pre-wrap;
         word-break: break-word;
-        max-height: 240px;
-        overflow-y: auto;
         font-size: 12px;
+      }
+      .copy-sample.is-hidden {
+        visibility: hidden;
       }
       .step .copy-label {
         margin: 14px 0 6px;
@@ -243,6 +316,74 @@
         letter-spacing: 0.8px;
         color: var(--accent);
       }
+      /* Default / AI format toggle on the copy step */
+      .format-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 14px 0 8px;
+      }
+      .format-toggle .name {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        transition: color 0.15s;
+      }
+      .format-toggle .name.active {
+        color: var(--accent);
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        flex: none;
+        width: 40px;
+        height: 22px;
+      }
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: var(--btn-bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .slider::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: var(--muted);
+        border-radius: 50%;
+        transition:
+          transform 0.15s,
+          background 0.15s;
+      }
+      .switch input:checked + .slider {
+        background: linear-gradient(180deg, #aa66ff, #8a4adb);
+        border-color: transparent;
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(18px);
+        background: #fff;
+      }
+      .switch input:focus-visible + .slider {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
       .shot-kicker {
         font-size: 10px;
         font-weight: 700;
@@ -346,45 +487,45 @@
       <section>
         <h2>Features</h2>
         <div class="features">
-          <div class="feature">
+          <a class="feature" href="#step-enable">
             <h3>Capture</h3>
             <p>
               Console errors and warnings, uncaught exceptions, unhandled rejections, and failed
               fetch / XHR requests.
             </p>
-          </div>
-          <div class="feature">
+          </a>
+          <a class="feature" href="#step-errors">
             <h3>Breadcrumbs</h3>
             <p>Navigation, clicks, logs, and HTTP traffic preceding each error, for context.</p>
-          </div>
-          <div class="feature">
-            <h3>Ignore rules</h3>
-            <p>Pattern-match the noise away so the panel only counts what you care about.</p>
-          </div>
-          <div class="feature">
-            <h3>Watch rules</h3>
-            <p>Surface specific patterns as toast notifications the moment they appear.</p>
-          </div>
-          <div class="feature">
+          </a>
+          <a class="feature" href="#step-copy">
             <h3>AI-ready copy</h3>
             <p>
               Markdown copy and export, with one switch that restructures it for AI debugging tools.
             </p>
-          </div>
-          <div class="feature">
-            <h3>Per-site enable</h3>
+          </a>
+          <a class="feature" href="#step-watch">
+            <h3>Ignore rules</h3>
+            <p>Pattern-match the noise away so the panel only counts what you care about.</p>
+          </a>
+          <a class="feature" href="#step-watch">
+            <h3>Watch rules</h3>
+            <p>Surface specific patterns as toast notifications the moment they appear.</p>
+          </a>
+          <a class="feature" href="#step-export">
+            <h3>Export</h3>
             <p>
-              Off everywhere by default, except <code>localhost</code>. Runs only on sites you opt
-              into.
+              Select a set of entries and export them together as Markdown, for a bug report or a
+              teammate.
             </p>
-          </div>
+          </a>
         </div>
       </section>
 
       <section>
         <h2>How you use it</h2>
 
-        <div class="step">
+        <div class="step" id="step-enable">
           <div>
             <h3><span class="step-num">1</span>Enable it where you work</h3>
             <p>
@@ -398,7 +539,7 @@
           </figure>
         </div>
 
-        <div class="step">
+        <div class="step" id="step-errors">
           <div>
             <h3><span class="step-num">2</span>Errors land in the corner</h3>
             <p>
@@ -412,7 +553,7 @@
           </figure>
         </div>
 
-        <div class="step">
+        <div class="step" id="step-copy">
           <div>
             <h3><span class="step-num">3</span>Copy it the way you need it</h3>
             <p>
@@ -421,9 +562,17 @@
               choice: error first, fenced sections, a breadcrumb timeline, and credential headers
               masked. Copy All exports the lot at once.
             </p>
-            <p>That same failed request, copied both ways:</p>
-            <p class="copy-label">Default Markdown</p>
-            <pre class="copy-sample"><code>PAGE: http://localhost:8000/
+            <p>That same failed request, copied both ways. Flip the switch to compare:</p>
+            <div class="format-toggle">
+              <span class="name active" data-on="false">Default Markdown</span>
+              <label class="switch">
+                <input type="checkbox" id="fmt-switch" aria-label="Toggle AI format" />
+                <span class="slider"></span>
+              </label>
+              <span class="name" data-on="true">AI format</span>
+            </div>
+            <div class="copy-stack">
+              <pre class="copy-sample" data-fmt="default"><code>PAGE: http://localhost:8000/
 
 BREADCRUMBS:
 15:04:07  CLICK  button.net "XHR GET httpbin.org/status/500"
@@ -438,8 +587,10 @@ Error
     at XMLHttpRequest.send (chrome-extension://nnhhmjniggmgoabcnmaafkfifiinimnp/interceptor.js:297:24)
     at fireXhr500 (http://localhost:8000/:640:11)
     at HTMLButtonElement.onclick (http://localhost:8000/:391:56)</code></pre>
-            <p class="copy-label">AI format</p>
-            <pre class="copy-sample"><code>REQUEST: GET https://httpbin.org/status/500
+              <pre
+                class="copy-sample is-hidden"
+                data-fmt="ai"
+              ><code>REQUEST: GET https://httpbin.org/status/500
 
 RESPONSE: Network Error Network Error (115 ms)
 
@@ -458,6 +609,7 @@ TIMELINE (oldest first, ends at this failure):
 15:04:07  FAIL   this entry (see above)
 ```
 PAGE: http://localhost:8000/</code></pre>
+            </div>
           </div>
           <figure class="shot">
             <img
@@ -467,7 +619,7 @@ PAGE: http://localhost:8000/</code></pre>
           </figure>
         </div>
 
-        <div class="step">
+        <div class="step" id="step-watch">
           <div>
             <h3><span class="step-num">4</span>Watch for the things you expect</h3>
             <p>
@@ -488,7 +640,7 @@ PAGE: http://localhost:8000/</code></pre>
           </div>
         </div>
 
-        <div class="step">
+        <div class="step" id="step-export">
           <div>
             <h3><span class="step-num">5</span>Export a session</h3>
             <p>
@@ -555,5 +707,59 @@ npm run build</code></pre>
         <a href="mailto:racna.dev@gmail.com">racna.dev@gmail.com</a>
       </footer>
     </div>
+
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+      <button class="lightbox-close" type="button" aria-label="Close">&times;</button>
+      <img alt="" />
+    </div>
+
+    <script>
+      // Click any walkthrough screenshot to open it full size in the overlay.
+      (function () {
+        const box = document.getElementById('lightbox');
+        const full = box.querySelector('img');
+
+        function open(src, alt) {
+          full.src = src;
+          full.alt = alt || '';
+          box.classList.add('open');
+          box.setAttribute('aria-hidden', 'false');
+        }
+        function close() {
+          box.classList.remove('open');
+          box.setAttribute('aria-hidden', 'true');
+          full.removeAttribute('src');
+        }
+
+        document.querySelectorAll('.shot img').forEach((img) => {
+          img.addEventListener('click', () => open(img.src, img.alt));
+        });
+        // Click anywhere on the backdrop (or the close button) dismisses it.
+        box.addEventListener('click', close);
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') close();
+        });
+      })();
+
+      // Default / AI format switch: show one copy sample at a time.
+      (function () {
+        const sw = document.getElementById('fmt-switch');
+        if (!sw) return;
+        const samples = document.querySelectorAll('.copy-sample[data-fmt]');
+        const labels = document.querySelectorAll('.format-toggle .name');
+
+        function sync() {
+          const on = sw.checked;
+          samples.forEach((s) => {
+            s.classList.toggle('is-hidden', (s.dataset.fmt === 'ai') !== on);
+          });
+          labels.forEach((l) => {
+            l.classList.toggle('active', (l.dataset.on === 'true') === on);
+          });
+        }
+        sw.addEventListener('change', sync);
+        sync();
+      })();
+    </script>
   </body>
 </html>
